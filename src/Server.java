@@ -212,8 +212,7 @@ public class Server {
 				//read the msg
 				msg = (String) sInput.readObject();
 				if (msg.contains("Hello Server")) {
-					msg = "Hello Client";
-					sOutput.writeObject(msg);
+					sOutput.writeObject("Hello Client");
 				}
 				// read the username
 				username = (String) sInput.readObject();
