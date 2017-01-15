@@ -209,7 +209,7 @@ public class Server {
 				sOutput = new ObjectOutputStream(socket.getOutputStream());
 				sInput  = new ObjectInputStream(socket.getInputStream());
 
-				//read the msg
+				//read the msg sent from the Client
 				msg = (String) sInput.readObject();
 				if (msg.contains("Hello Server")) {
 					sOutput.writeObject("Hello Client");

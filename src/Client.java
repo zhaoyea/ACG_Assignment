@@ -71,8 +71,10 @@ public class Client {
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects
         try {
+            // Once establish connection with the server, client will send a msg to the server before he logs in
             sOutput.writeObject("Hello Server");
             try {
+                // Client will verify the msg and cert sent by the server
                 String serverVerification = (String) sInput.readObject();
                 if (serverVerification.contains("Hello Client")) {
                     sOutput.writeObject(username);
