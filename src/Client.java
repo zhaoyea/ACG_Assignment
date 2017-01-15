@@ -77,6 +77,7 @@ public class Client {
                 // Client will verify the msg and cert sent by the server
                 String serverVerification = (String) sInput.readObject();
                 if (serverVerification.contains("Hello Client")) {
+                    // This part will use the CA to verify the certificate send by the Server
                     sOutput.writeObject(username);
                 }
             } catch (ClassNotFoundException e) {
