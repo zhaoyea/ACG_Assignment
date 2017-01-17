@@ -2,6 +2,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import javax.net.ssl.*;
 
 /*
  * The Client that can be run both as a console or a GUI
@@ -11,7 +12,7 @@ public class Client {
     // for I/O
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
-    private Socket socket;
+    private SSLSocket sslsocket;
 
     // if I use a GUI or not
     private ClientGUI cg;
@@ -49,7 +50,8 @@ public class Client {
     public boolean start() {
         // try to connect to the server
         try {
-            socket = new Socket(server, port);
+            SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            sslsocket = (SSLSocket) sslsocketfactory.createSocket(server, port);
         }
         // if it failed not much I can so
         catch (Exception ec) {
@@ -57,13 +59,13 @@ public class Client {
             return false;
         }
 
-        String msg = "Connection accepted " + socket.getInetAddress() + ":" + socket.getPort();
+        String msg = "Connection accepted " + sslsocket.getInetAddress() + ":" + sslsocket.getPort();
         display(msg);
 
 		/* Creating both Data Stream */
         try {
-            sInput = new ObjectInputStream(socket.getInputStream());
-            sOutput = new ObjectOutputStream(socket.getOutputStream());
+            sInput = new ObjectInputStream(sslsocket.getInputStream());
+            sOutput = new ObjectOutputStream(sslsocket.getOutputStream());
         } catch (IOException eIO) {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
@@ -132,7 +134,7 @@ public class Client {
         } catch (Exception e) {
         } // not much else I can do
         try {
-            if (socket != null) socket.close();
+            if (sslsocket != null) sslsocket.close();
         } catch (Exception e) {
         } // not much else I can do
 
