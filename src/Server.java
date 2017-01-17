@@ -1,7 +1,11 @@
 import java.io.*;
 import java.net.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -68,9 +72,9 @@ public class Server {
 				for(int i = 0; i < al.size(); ++i) {
 					ClientThread tc = al.get(i);
 					try {
-					tc.sInput.close();
-					tc.sOutput.close();
-					tc.socket.close();
+						tc.sInput.close();
+						tc.sOutput.close();
+						tc.socket.close();
 					}
 					catch(IOException ioE) {
 						// not much I can do
@@ -83,11 +87,13 @@ public class Server {
 		}
 		// something went bad
 		catch (IOException e) {
-            String msg = sdf.format(new Date()) + " Exception on new ServerSocket: " + e + "\n";
+			String msg = sdf.format(new Date()) + " Exception on new ServerSocket: " + e + "\n";
 			display(msg);
+		} catch (CertificateException e) {
+			e.printStackTrace();
 		}
 	}
-    /*
+	/*
      * For the GUI to stop the server
      */
 	protected void stop() {
@@ -197,7 +203,7 @@ public class Server {
 		String msg;
 
 		// Constructore
-		ClientThread(Socket socket) {
+		ClientThread(Socket socket) throws CertificateException {
 			// a unique id
 			id = ++uniqueId;
 			this.socket = socket;
@@ -212,7 +218,11 @@ public class Server {
 				//read the msg sent from the Client
 				msg = (String) sInput.readObject();
 				if (msg.contains("Hello Server")) {
-					sOutput.writeObject("Hello Client");
+					FileInputStream info = new FileInputStream ("D:/SP School Work Year 2 Sem 2/ACG/Assignment/2/ACG_Demo/SSL Cert/server.cert");
+					CertificateFactory cert = CertificateFactory.getInstance("X.509");
+					X509Certificate serverCert = (X509Certificate)cert.generateCertificate(info);
+					System.out.println("Sending File");
+					sOutput.writeObject("Hello Client" + serverCert);
 				}
 				// read the username
 				username = (String) sInput.readObject();
@@ -226,7 +236,7 @@ public class Server {
 			// but I read a String, I am sure it will work
 			catch (ClassNotFoundException e) {
 			}
-            date = new Date().toString() + "\n";
+			date = new Date().toString() + "\n";
 		}
 
 		// what will run forever
@@ -251,21 +261,21 @@ public class Server {
 				// Switch on the type of message receive
 				switch(cm.getType()) {
 
-				case ChatMessage.MESSAGE:
-					broadcast(username + ": " + message);
-					break;
-				case ChatMessage.LOGOUT:
-					display(username + " disconnected with a LOGOUT message.");
-					keepGoing = false;
-					break;
-				case ChatMessage.WHOISIN:
-					writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
-					// scan al the users connected
-					for(int i = 0; i < al.size(); ++i) {
-						ClientThread ct = al.get(i);
-						writeMsg((i+1) + ") " + ct.username + " since " + ct.date);
-					}
-					break;
+					case ChatMessage.MESSAGE:
+						broadcast(username + ": " + message);
+						break;
+					case ChatMessage.LOGOUT:
+						display(username + " disconnected with a LOGOUT message.");
+						keepGoing = false;
+						break;
+					case ChatMessage.WHOISIN:
+						writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
+						// scan al the users connected
+						for(int i = 0; i < al.size(); ++i) {
+							ClientThread ct = al.get(i);
+							writeMsg((i+1) + ") " + ct.username + " since " + ct.date);
+						}
+						break;
 				}
 			}
 			// remove myself from the arrayList containing the list of the
