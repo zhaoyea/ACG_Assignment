@@ -51,16 +51,7 @@ public class Server {
 	private SSLContext createSSLContext() {
 		try {
 			KeyStore keyStore = KeyStore.getInstance("JKS");
-			keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"),"12345678".toCharArray());
-
-            /*CertAndKeyGen gen = new CertAndKeyGen("RSA", "SHA1WithRSA");
-            gen.generate(1024);
-
-            X509Certificate cert = gen.getSelfCertificate(new X500Name("CN=SINGLE_CERTIFICATE"), (long)365*24*3600);
-
-            keyStore.setCertificateEntry("server_cert", cert);
-
-            keyStore.store(new FileOutputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"), "12345678".toCharArray());*/
+			keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/mykeystore.jks"), "12345678".toCharArray());
 
 			// Create key manager
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");

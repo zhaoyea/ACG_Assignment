@@ -46,8 +46,8 @@ public class Client {
     private SSLContext createSSLContext(){
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"),"12345678".toCharArray());
-
+            keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/mykeystore.jks"),"12345678".toCharArray());
+            java.security.cert.Certificate cert = keyStore.getCertificate("server_signed");
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             keyManagerFactory.init(keyStore, "12345678".toCharArray());
