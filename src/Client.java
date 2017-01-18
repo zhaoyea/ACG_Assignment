@@ -46,7 +46,7 @@ public class Client {
     private SSLContext createSSLContext(){
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/mykeystore.jks"),"12345678".toCharArray());
+            keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"),"12345678".toCharArray());
             java.security.cert.Certificate cert = keyStore.getCertificate("server_signed");
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -98,6 +98,15 @@ public class Client {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
         }
+
+        try {
+            System.out.println(sInput.readObject());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects
         try {

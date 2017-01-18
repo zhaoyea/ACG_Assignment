@@ -51,7 +51,7 @@ public class Server {
 	private SSLContext createSSLContext() {
 		try {
 			KeyStore keyStore = KeyStore.getInstance("JKS");
-			keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/mykeystore.jks"), "12345678".toCharArray());
+			keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
 
 			// Create key manager
 			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -219,7 +219,10 @@ public class Server {
 				sInput = new ObjectInputStream(sslsocket.getInputStream());
 
 				//send the certificate
-
+				FileInputStream info = new FileInputStream("src/SSL Cert/server_sign.cert");
+				CertificateFactory cert = CertificateFactory.getInstance("X.509");
+				X509Certificate serverCert = (X509Certificate)cert.generateCertificate(info);
+				sOutput.writeObject(serverCert);
 
 				// read the username
 				username = (String) sInput.readObject();
