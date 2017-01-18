@@ -42,6 +42,22 @@ public class Client {
         // save if we are in GUI mode or not
         this.cg = cg;
     }
+
+    /*public static void createKey() throws NoSuchAlgorithmException {
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(1024);
+            KeyPair keypair = keyPairGenerator.generateKeyPair();
+            PublicKey pubkey = keypair.getPublic();
+            System.out.println(pubkey);
+            PrivateKey privkey = keypair.getPrivate();
+
+            sOutput.writeObject(pubkey);
+            sOutput.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }*/
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
         try{
@@ -72,7 +88,7 @@ public class Client {
     /*
      * To start the dialog
      */
-    public boolean start() {
+    public boolean start() throws NoSuchAlgorithmException {
         // try to connect to the server
         SSLContext sslContext = this.createSSLContext();
         try {
@@ -94,6 +110,7 @@ public class Client {
         try {
             sInput = new ObjectInputStream(sslSocket.getInputStream());
             sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
+            Key publickey = null;
         } catch (IOException eIO) {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
@@ -110,8 +127,21 @@ public class Client {
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects
         try {
+            //Generate RSA keypair
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(1024);
+            KeyPair keypair = keyPairGenerator.generateKeyPair();
+            PublicKey pubkey = keypair.getPublic();
+            System.out.println(pubkey);
+            PrivateKey privkey = keypair.getPrivate();
+            //sends client public key to server
+            sOutput.writeObject(pubkey);
+            sOutput.flush();
+
             // Once establish connection with the server, client will send a msg to the server before he logs in
             sOutput.writeObject(username);
+
+
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
             disconnect();
@@ -187,7 +217,7 @@ public class Client {
      * In console mode, if an error occurs the program simply stops
      * when a GUI id used, the GUI is informed of the disconnection
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchAlgorithmException {
         // default values
         int portNumber = 1500;
         String serverAddress = "localhost";
@@ -224,6 +254,8 @@ public class Client {
         // if it failed nothing we can do
         if (!client.start())
             return;
+        //else
+         //   createKey();
 
         // wait for messages from user
         Scanner scan = new Scanner(System.in);

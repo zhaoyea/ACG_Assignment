@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.security.NoSuchAlgorithmException;
 
 /*
  * The server as a GUI
@@ -127,7 +128,11 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	 */
 	class ServerRunning extends Thread {
 		public void run() {
-			server.start();         // should execute until if fails
+			try {
+				server.start();         // should execute until if fails
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
 			// the server failed
 			stopStart.setText("Start");
 			tPortNumber.setEditable(true);

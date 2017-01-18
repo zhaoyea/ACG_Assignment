@@ -8,6 +8,10 @@ import java.security.cert.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.net.ssl.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import sun.misc.*;
+
 
 
 /*
@@ -75,14 +79,23 @@ public class Server {
 		return null;
 	}
 
-	public void start() {
+
+	public void start() throws NoSuchAlgorithmException {
 		keepGoing = true;
-        /* create socket server and wait for connection requests */
+
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+		keyPairGenerator.initialize(1024);
+		KeyPair keypair = keyPairGenerator.generateKeyPair();
+		PublicKey pubkey = keypair.getPublic();
+		PrivateKey privkey = keypair.getPrivate();
+
+		/* create socket server and wait for connection requests */
 		SSLContext sslContext = this.createSSLContext();
 		try {
 			// the socket used by the server
 			SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory .createServerSocket(port);
+
 
 			// infinite loop to wait for connections
 			while (keepGoing) {
@@ -224,6 +237,11 @@ public class Server {
 				X509Certificate serverCert = (X509Certificate)cert.generateCertificate(info);
 				sOutput.writeObject(serverCert);
 
+				//get the clipubkey
+				Key obj = (Key)sInput.readObject();
+				//PublicKey clipub = (PublicKey) obj;
+				System.out.println(obj);
+
 				// read the username
 				username = (String) sInput.readObject();
 				display(username + " just connected.");
@@ -327,7 +345,7 @@ public class Server {
      * > java Server portNumber
      * If the port number is not specified 1500 is used
      */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NoSuchAlgorithmException {
 		// start server on port 1500 unless a PortNumber is specified
 		int portNumber = 1500;
 		switch (args.length) {

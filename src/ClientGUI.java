@@ -2,6 +2,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.security.NoSuchAlgorithmException;
 
 
 /*
@@ -164,8 +165,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// try creating a new Client with GUI
 			client = new Client(server, port, username, this);
 			// test if we can start the Client
-			if(!client.start())
-				return;
+			try {
+				if(!client.start())
+                    return;
+			} catch (NoSuchAlgorithmException e1) {
+				e1.printStackTrace();
+			}
 			tf.setText("");
 			label.setText("Enter your message below");
 			connected = true;
