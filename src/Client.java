@@ -1,6 +1,5 @@
-
-import java.net.*;
 import java.io.*;
+import java.security.*;
 import java.util.*;
 import javax.net.ssl.*;
 
@@ -12,7 +11,7 @@ public class Client {
     // for I/O
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
-    private SSLSocket sslsocket;
+    private SSLSocket sslSocket;
 
     // if I use a GUI or not
     private ClientGUI cg;
@@ -43,15 +42,44 @@ public class Client {
         // save if we are in GUI mode or not
         this.cg = cg;
     }
+    // Create the and initialize the SSLContext
+    private SSLContext createSSLContext(){
+        try{
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"),"12345678".toCharArray());
 
+            // Create key manager
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, "12345678".toCharArray());
+            KeyManager[] km = keyManagerFactory.getKeyManagers();
+
+            // Create trust manager
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+            trustManagerFactory.init(keyStore);
+            TrustManager[] tm = trustManagerFactory.getTrustManagers();
+
+            // Initialize SSLContext
+            SSLContext sslContext = SSLContext.getInstance("TLSv1");
+            sslContext.init(km,  tm, null);
+
+            return sslContext;
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
     /*
      * To start the dialog
      */
     public boolean start() {
         // try to connect to the server
+        SSLContext sslContext = this.createSSLContext();
         try {
-            SSLSocketFactory sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-            sslsocket = (SSLSocket) sslsocketfactory.createSocket(server, port);
+            // Create socket factory
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            sslSocket = (SSLSocket) sslSocketFactory.createSocket(server, port);
         }
         // if it failed not much I can so
         catch (Exception ec) {
@@ -59,13 +87,13 @@ public class Client {
             return false;
         }
 
-        String msg = "Connection accepted " + sslsocket.getInetAddress() + ":" + sslsocket.getPort();
+        String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
         display(msg);
 
 		/* Creating both Data Stream */
         try {
-            sInput = new ObjectInputStream(sslsocket.getInputStream());
-            sOutput = new ObjectOutputStream(sslsocket.getOutputStream());
+            sInput = new ObjectInputStream(sslSocket.getInputStream());
+            sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
         } catch (IOException eIO) {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
@@ -74,19 +102,7 @@ public class Client {
         // will send as a String. All other messages will be ChatMessage objects
         try {
             // Once establish connection with the server, client will send a msg to the server before he logs in
-            sOutput.writeObject("Hello Server");
-            try {
-                // Client will verify the msg and cert sent by the server
-                String serverVerification = (String) sInput.readObject();
-                if (serverVerification.contains("Hello Client")) {
-                    // receive file
-                    System.out.println("Received file" + serverVerification);
-                    sOutput.writeObject(username);
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
+            sOutput.writeObject(username);
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
             disconnect();
@@ -134,7 +150,7 @@ public class Client {
         } catch (Exception e) {
         } // not much else I can do
         try {
-            if (sslsocket != null) sslsocket.close();
+            if (sslSocket != null) sslSocket.close();
         } catch (Exception e) {
         } // not much else I can do
 

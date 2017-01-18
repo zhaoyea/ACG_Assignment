@@ -1,5 +1,9 @@
+import sun.security.tools.keytool.CertAndKeyGen;
+import sun.security.x509.X500Name;
+
 import java.io.*;
 import java.net.*;
+import java.security.*;
 import java.security.cert.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -43,13 +47,51 @@ public class Server {
 		al = new ArrayList<ClientThread>();
 	}
 
+	// Create the and initialize the SSLContext
+	private SSLContext createSSLContext() {
+		try {
+			KeyStore keyStore = KeyStore.getInstance("JKS");
+			keyStore.load(new FileInputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"),"12345678".toCharArray());
+
+            /*CertAndKeyGen gen = new CertAndKeyGen("RSA", "SHA1WithRSA");
+            gen.generate(1024);
+
+            X509Certificate cert = gen.getSelfCertificate(new X500Name("CN=SINGLE_CERTIFICATE"), (long)365*24*3600);
+
+            keyStore.setCertificateEntry("server_cert", cert);
+
+            keyStore.store(new FileOutputStream("C:/Users/tanzh/Desktop/ACG_local/cert/keystore.jks"), "12345678".toCharArray());*/
+
+			// Create key manager
+			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			keyManagerFactory.init(keyStore, "12345678".toCharArray());
+			KeyManager[] km = keyManagerFactory.getKeyManagers();
+
+			// Create trust manager
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+			trustManagerFactory.init(keyStore);
+			TrustManager[] tm = trustManagerFactory.getTrustManagers();
+
+			// Initialize SSLContext
+			SSLContext sslContext = SSLContext.getInstance("TLSv1");
+			sslContext.init(km, tm, null);
+
+			return sslContext;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
 	public void start() {
 		keepGoing = true;
         /* create socket server and wait for connection requests */
+		SSLContext sslContext = this.createSSLContext();
 		try {
 			// the socket used by the server
-			SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-			SSLServerSocket sslserversocket = (SSLServerSocket) sslserversocketfactory.createServerSocket(port);
+			SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+			SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory .createServerSocket(port);
 
 			// infinite loop to wait for connections
 			while (keepGoing) {
@@ -57,7 +99,7 @@ public class Server {
 				display("Server waiting for Clients on port " + port + ".");
 
 				//accept connection
-				SSLSocket sslsocket = (SSLSocket) sslserversocket.accept();
+				SSLSocket sslsocket = (SSLSocket) sslServerSocket.accept();
 
 				// if I was asked to stop
 				if (!keepGoing)
@@ -68,7 +110,7 @@ public class Server {
 			}
 			// I was asked to stop
 			try {
-				sslserversocket.close();
+				sslServerSocket.close();
 				for (int i = 0; i < al.size(); ++i) {
 					ClientThread tc = al.get(i);
 					try {
@@ -178,22 +220,16 @@ public class Server {
 			// a unique id
 			id = ++uniqueId;
 			this.sslsocket = sslsocket;
-			/* Creating both Data Stream */
+            /* Creating both Data Stream */
 			System.out.println("Thread trying to create Object Input/Output Streams");
 			try {
 				// create output first
 				sOutput = new ObjectOutputStream(sslsocket.getOutputStream());
 				sInput = new ObjectInputStream(sslsocket.getInputStream());
 
-				//read the msg sent from the Client
-				msg = (String) sInput.readObject();
-				if (msg.contains("Hello Server")) {
-					FileInputStream info = new FileInputStream("D:/SP School Work Year 2 Sem 2/ACG/Assignment/2/ACG_Demo/SSL Cert/server.cert");
-					CertificateFactory cert = CertificateFactory.getInstance("X.509");
-					X509Certificate serverCert = (X509Certificate) cert.generateCertificate(info);
-					System.out.println("Sending File");
-					sOutput.writeObject("Hello Client" + serverCert);
-				}
+				//send the certificate
+
+
 				// read the username
 				username = (String) sInput.readObject();
 				display(username + " just connected.");
