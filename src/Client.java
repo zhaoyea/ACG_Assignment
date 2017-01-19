@@ -43,43 +43,40 @@ public class Client {
         this.cg = cg;
     }
 
-    /*public static void createKey() throws NoSuchAlgorithmException {
-        try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(1024);
-            KeyPair keypair = keyPairGenerator.generateKeyPair();
-            PublicKey pubkey = keypair.getPublic();
-            System.out.println(pubkey);
-            PrivateKey privkey = keypair.getPrivate();
-
-            sOutput.writeObject(pubkey);
-            sOutput.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-    // Create the and initialize the SSLContext
+    //////////////////////////////////
+    ///// CREATE THE SSL CONTEXT /////
+    //////////////////////////////////
     private SSLContext createSSLContext(){
         try{
-            //load the Client private key
+            /////////////////////////////////////////
+            ///// LOAD THE CLIENT'S PRIVATE KEY /////
+            /////////////////////////////////////////
             KeyStore clientKeys = KeyStore.getInstance("JKS");
             clientKeys.load(new FileInputStream("src/SSL Cert/plainclient.jks"),"12345678".toCharArray());
 
-            // Create key manager
+            ///////////////////////////////////
+            ///// CREATE THE KEY MANAGER /////
+            //////////////////////////////////
             KeyManagerFactory clientKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             clientKeyManagerFactory.init(clientKeys, "12345678".toCharArray());
             KeyManager[] km = clientKeyManagerFactory.getKeyManagers();
 
-            //load the Server Public Key
+            /////////////////////////////////////////
+            ///// LOAD THE SERVER'S PUBLIC KEY /////
+            /////////////////////////////////////////
             KeyStore serverPub = KeyStore.getInstance("JKS");
             serverPub.load(new FileInputStream("src/SSL Cert/serverpub.jks"), "12345678".toCharArray());
 
-            // Create trust manager
+            ////////////////////////////////////
+            ///// CREATE THE TRUST MANAGER /////
+            ////////////////////////////////////
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
             trustManagerFactory.init(serverPub);
             TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
-            // Initialize SSLContext
+            ////////////////////////////////////////////////////
+            ///// USE THE KEYS TO INITILISE THE SSLCONTEXT /////
+            ////////////////////////////////////////////////////
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(km,  tm, SecureRandom.getInstance("SHA1PRNG"));
 
@@ -94,10 +91,14 @@ public class Client {
      * To start the dialog
      */
     public boolean start() {
-        // try to connect to the server
+        //////////////////////////////////
+        ///// CREATE THE SSLCONTEXT /////
+        ///// AND WAIT CONNECTION  //////
+        ////////////////////////////////
         SSLContext sslContext = createSSLContext();
         try {
-            // Create socket factory
+            /////////////////////////////
+            /// Create socket factory ///
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             sslSocket = (SSLSocket) sslSocketFactory.createSocket(server, port);

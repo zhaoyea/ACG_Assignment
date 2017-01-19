@@ -1,3 +1,5 @@
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+
 import java.io.*;
 import java.net.*;
 import java.security.*;
@@ -43,28 +45,41 @@ public class Server {
 		al = new ArrayList<ClientThread>();
 	}
 
-	// Create the and initialize the SSLContext
+	//////////////////////////////////
+	///// CREATE THE SSL CONTEXT /////
+	//////////////////////////////////
 	private SSLContext createSSLContext() {
 		try {
-			//load the server private key
+
+			/////////////////////////////////////////
+			///// LOAD THE SERVER'S PRIVATE KEY /////
+			/////////////////////////////////////////
 			KeyStore serverKeys = KeyStore.getInstance("JKS");
 			serverKeys.load(new FileInputStream("src/SSL Cert/plainserver.jks"), "12345678".toCharArray());
 
-			// Create key manager
+			///////////////////////////////////
+			///// CREATE THE KEY MANAGER /////
+			//////////////////////////////////
 			KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 			serverKeyManagerFactory.init(serverKeys, "12345678".toCharArray());
 			KeyManager[] km = serverKeyManagerFactory.getKeyManagers();
 
-			// Load the Client Public Key
+			/////////////////////////////////////////
+			///// LOAD THE CLIENT'S PUBLIC KEY /////
+			/////////////////////////////////////////
 			KeyStore clientPub = KeyStore.getInstance("JKS");
 			clientPub.load(new FileInputStream("src/SSL Cert/clientpub.jks"), "12345678".toCharArray());
 
-			//Creat the TrustManager
+			////////////////////////////////////
+			///// CREATE THE TRUST MANAGER /////
+			////////////////////////////////////
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
 			trustManagerFactory.init(clientPub);
 			TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
-			// Use the keys to create the SSLContext
+			////////////////////////////////////////////////////
+			///// USE THE KEYS TO INITILISE THE SSLCONTEXT /////
+			////////////////////////////////////////////////////
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(km, tm, SecureRandom.getInstance("SHA1PRNG"));
 
@@ -79,7 +94,10 @@ public class Server {
 	public void start() throws Exception {
 		keepGoing = true;
 
-		/* create socket server and wait for connection requests */
+		//////////////////////////////////
+		///// CREATE THE SSLCONTEXT /////
+		///// AND WAIT CONNECTION  //////
+		////////////////////////////////
 		SSLContext sslContext = createSSLContext();
 		try {
 			// the socket used by the server
