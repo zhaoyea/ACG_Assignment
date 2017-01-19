@@ -79,7 +79,6 @@ public class Server {
 		return null;
 	}
 
-
 	public void start() throws NoSuchAlgorithmException {
 		keepGoing = true;
 
