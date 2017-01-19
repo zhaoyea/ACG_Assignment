@@ -61,22 +61,27 @@ public class Client {
     // Create the and initialize the SSLContext
     private SSLContext createSSLContext(){
         try{
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"),"12345678".toCharArray());
-            java.security.cert.Certificate cert = keyStore.getCertificate("server_signed");
+            //load the Client private key
+            KeyStore clientKeys = KeyStore.getInstance("JKS");
+            clientKeys.load(new FileInputStream("src/SSL Cert/plainclient.jks"),"12345678".toCharArray());
+
             // Create key manager
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, "12345678".toCharArray());
-            KeyManager[] km = keyManagerFactory.getKeyManagers();
+            KeyManagerFactory clientKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            clientKeyManagerFactory.init(clientKeys, "12345678".toCharArray());
+            KeyManager[] km = clientKeyManagerFactory.getKeyManagers();
+
+            //load the Server Public Key
+            KeyStore serverPub = KeyStore.getInstance("JKS");
+            serverPub.load(new FileInputStream("src/SSL Cert/serverpub.jks"), "12345678".toCharArray());
 
             // Create trust manager
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-            trustManagerFactory.init(keyStore);
+            trustManagerFactory.init(serverPub);
             TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
             // Initialize SSLContext
-            SSLContext sslContext = SSLContext.getInstance("TLSv1");
-            sslContext.init(km,  tm, null);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(km,  tm, SecureRandom.getInstance("SHA1PRNG"));
 
             return sslContext;
         } catch (Exception ex){
@@ -88,14 +93,19 @@ public class Client {
     /*
      * To start the dialog
      */
-    public boolean start() throws NoSuchAlgorithmException {
+    public boolean start() {
         // try to connect to the server
-        SSLContext sslContext = this.createSSLContext();
+        SSLContext sslContext = createSSLContext();
         try {
             // Create socket factory
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
             sslSocket = (SSLSocket) sslSocketFactory.createSocket(server, port);
+            sslSocket.startHandshake();
+            SSLSession sslSession = sslSocket.getSession();
+            System.out.println("SSLSession :");
+            System.out.println("\tProtocol : "+sslSession.getProtocol());
+            System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
         }
         // if it failed not much I can so
         catch (Exception ec) {
@@ -110,37 +120,16 @@ public class Client {
         try {
             sInput = new ObjectInputStream(sslSocket.getInputStream());
             sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
-            Key publickey = null;
         } catch (IOException eIO) {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
         }
 
-        try {
-            System.out.println(sInput.readObject());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects
         try {
-            //Generate RSA keypair
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(1024);
-            KeyPair keypair = keyPairGenerator.generateKeyPair();
-            PublicKey pubkey = keypair.getPublic();
-            System.out.println(pubkey);
-            PrivateKey privkey = keypair.getPrivate();
-            //sends client public key to server
-            sOutput.writeObject(pubkey);
-            sOutput.flush();
-
             // Once establish connection with the server, client will send a msg to the server before he logs in
             sOutput.writeObject(username);
-
 
         } catch (IOException eIO) {
             display("Exception doing login : " + eIO);
@@ -255,7 +244,7 @@ public class Client {
         if (!client.start())
             return;
         //else
-         //   createKey();
+        //   createKey();
 
         // wait for messages from user
         Scanner scan = new Scanner(System.in);

@@ -1,6 +1,3 @@
-import sun.security.tools.keytool.CertAndKeyGen;
-import sun.security.x509.X500Name;
-
 import java.io.*;
 import java.net.*;
 import java.security.*;
@@ -8,11 +5,6 @@ import java.security.cert.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.net.ssl.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-import sun.misc.*;
-
-
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -54,22 +46,27 @@ public class Server {
 	// Create the and initialize the SSLContext
 	private SSLContext createSSLContext() {
 		try {
-			KeyStore keyStore = KeyStore.getInstance("JKS");
-			keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
+			//load the server private key
+			KeyStore serverKeys = KeyStore.getInstance("JKS");
+			serverKeys.load(new FileInputStream("src/SSL Cert/plainserver.jks"), "12345678".toCharArray());
 
 			// Create key manager
-			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-			keyManagerFactory.init(keyStore, "12345678".toCharArray());
-			KeyManager[] km = keyManagerFactory.getKeyManagers();
+			KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+			serverKeyManagerFactory.init(serverKeys, "12345678".toCharArray());
+			KeyManager[] km = serverKeyManagerFactory.getKeyManagers();
 
-			// Create trust manager
+			// Load the Client Public Key
+			KeyStore clientPub = KeyStore.getInstance("JKS");
+			clientPub.load(new FileInputStream("src/SSL Cert/clientpub.jks"), "12345678".toCharArray());
+
+			//Creat the TrustManager
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-			trustManagerFactory.init(keyStore);
+			trustManagerFactory.init(clientPub);
 			TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
-			// Initialize SSLContext
-			SSLContext sslContext = SSLContext.getInstance("TLSv1");
-			sslContext.init(km, tm, null);
+			// Use the keys to create the SSLContext
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(km, tm, SecureRandom.getInstance("SHA1PRNG"));
 
 			return sslContext;
 		} catch (Exception ex) {
@@ -79,23 +76,16 @@ public class Server {
 		return null;
 	}
 
-	public void start() throws NoSuchAlgorithmException {
+	public void start() throws Exception {
 		keepGoing = true;
 
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		keyPairGenerator.initialize(1024);
-		KeyPair keypair = keyPairGenerator.generateKeyPair();
-		PublicKey pubkey = keypair.getPublic();
-		PrivateKey privkey = keypair.getPrivate();
-
 		/* create socket server and wait for connection requests */
-		SSLContext sslContext = this.createSSLContext();
+		SSLContext sslContext = createSSLContext();
 		try {
 			// the socket used by the server
 			SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory .createServerSocket(port);
-
-
+			sslServerSocket.setNeedClientAuth(true);
 			// infinite loop to wait for connections
 			while (keepGoing) {
 				// format message saying we are waiting
@@ -218,8 +208,8 @@ public class Server {
 		String date;
 		String msg;
 
-		// Constructore
-		ClientThread(SSLSocket sslsocket) throws CertificateException {
+		// Constructor
+		ClientThread(SSLSocket sslsocket) throws Exception {
 			// a unique id
 			id = ++uniqueId;
 			this.sslsocket = sslsocket;
@@ -229,17 +219,6 @@ public class Server {
 				// create output first
 				sOutput = new ObjectOutputStream(sslsocket.getOutputStream());
 				sInput = new ObjectInputStream(sslsocket.getInputStream());
-
-				//send the certificate
-				FileInputStream info = new FileInputStream("src/SSL Cert/server_sign.cert");
-				CertificateFactory cert = CertificateFactory.getInstance("X.509");
-				X509Certificate serverCert = (X509Certificate)cert.generateCertificate(info);
-				sOutput.writeObject(serverCert);
-
-				//get the clipubkey
-				Key obj = (Key)sInput.readObject();
-				//PublicKey clipub = (PublicKey) obj;
-				System.out.println(obj);
 
 				// read the username
 				username = (String) sInput.readObject();
@@ -344,7 +323,7 @@ public class Server {
      * > java Server portNumber
      * If the port number is not specified 1500 is used
      */
-	public static void main(String[] args) throws NoSuchAlgorithmException {
+	public static void main(String[] args) throws Exception {
 		// start server on port 1500 unless a PortNumber is specified
 		int portNumber = 1500;
 		switch (args.length) {
