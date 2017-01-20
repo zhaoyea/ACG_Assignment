@@ -165,12 +165,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// try creating a new Client with GUI
 			client = new Client(server, port, username, this);
 			// test if we can start the Client
-			try {
-				if(!client.start())
-                    return;
-			} catch (NoSuchAlgorithmException e1) {
-				e1.printStackTrace();
-			}
+			if(!client.start())
+				return;
 			tf.setText("");
 			label.setText("Enter your message below");
 			connected = true;

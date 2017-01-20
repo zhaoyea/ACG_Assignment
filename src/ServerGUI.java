@@ -132,6 +132,8 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 				server.start();         // should execute until if fails
 			} catch (NoSuchAlgorithmException e) {
 				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			// the server failed
 			stopStart.setText("Start");
