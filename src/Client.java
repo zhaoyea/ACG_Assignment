@@ -1,8 +1,8 @@
 import java.io.*;
 import java.security.*;
 import java.security.cert.*;
-import java.security.cert.Certificate;
 import java.util.*;
+import javax.crypto.*;
 import javax.net.ssl.*;
 
 /*
@@ -19,7 +19,7 @@ public class Client {
     private ClientGUI cg;
 
     // the server, the port and the username
-    private String server, username;
+    private String server, username, password;
     private int port;
 
     /*
@@ -30,7 +30,7 @@ public class Client {
      */
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
-        this(server, port, username, null);
+        this(server, port, username,null);
     }
 
     /*
@@ -83,6 +83,10 @@ public class Client {
         return null;
     }
 
+
+    /////////////////////////////////////////
+    /// Grab the CA cert for verification ///
+    /////////////////////////////////////////
     public X509Certificate getCACertificate() throws Exception {
         //Declaration of variables to be used
         String keystoreFile = "src/SSL Cert/mykeystore.jks";
@@ -99,7 +103,9 @@ public class Client {
 
     }
 
+
     public void checkServerCert(X509Certificate cert) throws Exception {
+        //http://stackoverflow.com/questions/6629473/validate-x-509-certificate-agains-concrete-ca-java
         if (cert == null) {
             throw new IllegalArgumentException("Null or zero-length certificate chain");
         }
@@ -114,14 +120,12 @@ public class Client {
             }
         }
         //If we end here certificate is trusted. Check if it has expired.
-        try{
+        try {
             cert.checkValidity();
-        }
-        catch(Exception e){
-            throw new CertificateException("Certificate not trusted. It has expired",e);
+        } catch (Exception e) {
+            throw new CertificateException("Certificate not trusted. It has expired", e);
         }
     }
-
     /*
      * To start the dialog
      */
@@ -134,6 +138,7 @@ public class Client {
         try {
             /////////////////////////////
             /// Create socket factory ///
+            /////////////////////////////
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
             sslSocket = (SSLSocket) sslSocketFactory.createSocket(server, port);
 
@@ -141,17 +146,66 @@ public class Client {
             sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
             sInput = new ObjectInputStream(sslSocket.getInputStream());
 
-            //Start of Certificate verification
+            ////////////////////////////////////////////////
+            /// Start of Server Certificate verification ///
+            ////////////////////////////////////////////////
             sOutput.writeObject("Hello Server");
             String serverMsg = (String) sInput.readObject();
+            //Read the Certificate send from Server
             X509Certificate serverCert = (X509Certificate) sInput.readObject();
 
             if (serverMsg.contains("Hello Client")) {
+                //Checking of Server Certificate
                 checkServerCert(serverCert);
+                //Start the ssl handshake if true
                 sslSocket.startHandshake();
+                sOutput.writeObject("Trusted Server");
                 SSLSession sslSession = sslSocket.getSession();
                 System.out.println("SSL Session: ");
                 System.out.println("\t" + sslSession.getCipherSuite());
+
+
+                String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
+                display(msg);
+
+                //After handshake starts, ask User to login
+                Scanner in = new Scanner(System.in);
+                System.out.println("Username: ");
+                username = in.nextLine();
+                System.out.println("Password: ");
+                password = in.nextLine();
+
+                //Grab the server public key
+                PublicKey serverPub = serverCert.getPublicKey();
+                Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                cipher.init(Cipher.ENCRYPT_MODE, serverPub);
+                byte[] PlainUserName = username.getBytes("UTF8");
+                byte[] PlainPwd = password.getBytes("UTF8");
+                byte[] encryptedUserName = cipher.doFinal(PlainUserName);
+                byte[] encryptedPwd = cipher.doFinal(PlainPwd);
+                /*
+                // Print the encryptedUserName
+                System.out.println("\n\nUsername: ");
+                System.out.println(asHex(encryptedUserName));
+                // Print the encryptedUserName
+                System.out.println("\n\nPassword: ");
+                System.out.println(asHex(encryptedPwd));
+                */
+                //Send the encrypted credentials to the server
+                sOutput.writeObject(encryptedUserName);
+                sOutput.writeObject(encryptedPwd);
+
+
+                // Send our username to the server this is the only message that we
+                // will send as a String. All other messages will be ChatMessage objects
+                try {
+                    sOutput.writeObject(username);
+                } catch (IOException eIO) {
+                    display("Exception doing login : " + eIO);
+                    disconnect();
+                    return false;
+                }
+
             } else {
                 System.out.println("SSL Certificate verification fail");
                 sslSocket.close();
@@ -163,20 +217,7 @@ public class Client {
             return false;
         }
 
-        String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
-        display(msg);
 
-        // Send our username to the server this is the only message that we
-        // will send as a String. All other messages will be ChatMessage objects
-        try {
-            // Once establish connection with the server, client will send a msg to the server before he logs in
-            sOutput.writeObject(username);
-
-        } catch (IOException eIO) {
-            display("Exception doing login : " + eIO);
-            disconnect();
-            return false;
-        }
         // creates the Thread to listen from the server
         new ListenFromServer().start();
         // success we inform the caller that it worked
@@ -339,5 +380,18 @@ public class Client {
                 }
             }
         }
+    }
+    public static String asHex(byte buf[]) {
+        StringBuffer strbuf = new StringBuffer(buf.length * 2);
+        int i;
+
+        for (i = 0; i < buf.length; i++) {
+            if (((int) buf[i] & 0xff) < 0x10)
+                strbuf.append("0");
+
+            strbuf.append(Long.toString((int) buf[i] & 0xff, 16));
+        }
+
+        return strbuf.toString();
     }
 }

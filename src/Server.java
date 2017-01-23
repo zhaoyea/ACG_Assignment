@@ -2,9 +2,9 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.security.cert.*;
-import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.crypto.Cipher;
 import javax.net.ssl.*;
 
 /*
@@ -23,6 +23,11 @@ public class Server {
 	private int port;
 	// the boolean that will be turned of to stop the server
 	private boolean keepGoing;
+
+	//Declaration of variables to be used
+	String keystoreFile = "src/SSL Cert/mykeystore.jks";
+	String serverAlias = "server_signed";
+	String keyStorePwd = "12345678";
 
 
 	/*
@@ -85,20 +90,7 @@ public class Server {
 		return null;
 	}
 
-	public X509Certificate getServerCertificate() throws Exception {
-		//Declaration of variables to be used
-		String keystoreFile = "src/SSL Cert/mykeystore.jks";
-		String serverAlias = "server_signed";
-		String keyStorePwd = "12345678";
 
-		//Read from the keystore
-		FileInputStream input = new FileInputStream(keystoreFile);
-		KeyStore keyStore = KeyStore.getInstance("JKS");
-		keyStore.load(input, keyStorePwd.toCharArray());
-		X509Certificate serverCert = (X509Certificate) keyStore.getCertificate(serverAlias);
-
-		return serverCert;
-	}
 
 	public void start() throws Exception {
 		keepGoing = true;
@@ -217,6 +209,32 @@ public class Server {
 		}
 	}
 
+	////////////////////////////
+	/// Grab the Server cert ///
+	////////////////////////////
+	public X509Certificate getServerCertificate() throws Exception {
+		//Read from the keystore
+		FileInputStream input = new FileInputStream(keystoreFile);
+		KeyStore keyStore = KeyStore.getInstance("JKS");
+		keyStore.load(input, keyStorePwd.toCharArray());
+		X509Certificate serverCert = (X509Certificate) keyStore.getCertificate(serverAlias);
+
+		return serverCert;
+	}
+
+	public PrivateKey getPrivateKey() throws Exception {
+		FileInputStream input = new FileInputStream(keystoreFile);
+		KeyStore keyStore = KeyStore.getInstance("JKS");
+		keyStore.load(input, keyStorePwd.toCharArray());
+		KeyStore.PrivateKeyEntry keyEnt = (KeyStore.PrivateKeyEntry) keyStore.getEntry(serverAlias,
+				new KeyStore.PasswordProtection(keyStorePwd.toCharArray()));
+		PrivateKey privateKey = keyEnt.getPrivateKey();
+
+		return privateKey;
+	}
+
+
+
 	/**
 	 * One instance of this thread will run for each client
 	 */
@@ -253,6 +271,20 @@ public class Server {
 				if (clientMsg.equals("Hello Server")) {
 					sOutput.writeObject("Hello Client\nThis is my Certificate: ");
 					sOutput.writeObject(serverCert);
+
+					if (((String) sInput.readObject()).contains("Trusted Server")) {
+						PrivateKey serverPrivateKey = getPrivateKey();
+						Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+						cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
+						byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
+						byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
+						System.out.println("Decrypted Username:\n" + new String (decryptedUserName));
+						System.out.println("Decrypted Password:\n" + new String (decryptedPwd));
+
+					}
+				} else {
+					System.out.println("Failed: Client never send Hello text");
+					sslsocket.close();
 				}
 				// read the username
 				username = (String) sInput.readObject();
@@ -379,5 +411,18 @@ public class Server {
 		// create a server object and start it
 		Server server = new Server(portNumber);
 		server.start();
+	}
+	public static String asHex(byte buf[]) {
+		StringBuffer strbuf = new StringBuffer(buf.length * 2);
+		int i;
+
+		for (i = 0; i < buf.length; i++) {
+			if (((int) buf[i] & 0xff) < 0x10)
+				strbuf.append("0");
+
+			strbuf.append(Long.toString((int) buf[i] & 0xff, 16));
+		}
+
+		return strbuf.toString();
 	}
 }
