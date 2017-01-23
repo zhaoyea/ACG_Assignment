@@ -54,27 +54,22 @@ public class Server {
 			/////////////////////////////////////////
 			///// LOAD THE SERVER'S PRIVATE KEY /////
 			/////////////////////////////////////////
-			KeyStore serverKeys = KeyStore.getInstance("JKS");
-			serverKeys.load(new FileInputStream("src/SSL Cert/plainserver.jks"), "12345678".toCharArray());
+			KeyStore keyStore = KeyStore.getInstance("JKS");
+			keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
 
 			///////////////////////////////////
 			///// CREATE THE KEY MANAGER /////
 			//////////////////////////////////
 			KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-			serverKeyManagerFactory.init(serverKeys, "12345678".toCharArray());
+			serverKeyManagerFactory.init(keyStore, "12345678".toCharArray());
 			KeyManager[] km = serverKeyManagerFactory.getKeyManagers();
 
-			/////////////////////////////////////////
-			///// LOAD THE CLIENT'S PUBLIC KEY /////
-			/////////////////////////////////////////
-			KeyStore clientPub = KeyStore.getInstance("JKS");
-			clientPub.load(new FileInputStream("src/SSL Cert/clientpub.jks"), "12345678".toCharArray());
 
 			////////////////////////////////////
 			///// CREATE THE TRUST MANAGER /////
 			////////////////////////////////////
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-			trustManagerFactory.init(clientPub);
+			trustManagerFactory.init(keyStore);
 			TrustManager[] tm = trustManagerFactory.getTrustManagers();
 
 			////////////////////////////////////////////////////
