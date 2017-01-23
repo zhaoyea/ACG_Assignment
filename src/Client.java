@@ -1,5 +1,7 @@
 import java.io.*;
 import java.security.*;
+import java.security.cert.*;
+import java.security.cert.Certificate;
 import java.util.*;
 import javax.net.ssl.*;
 
@@ -46,14 +48,13 @@ public class Client {
     //////////////////////////////////
     ///// CREATE THE SSL CONTEXT /////
     //////////////////////////////////
-    private SSLContext createSSLContext(){
-        try{
+    private SSLContext createSSLContext() {
+        try {
             /////////////////////////////////////////
             ///// LOAD THE CLIENT'S PRIVATE KEY /////
             /////////////////////////////////////////
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("src/SSL Cert/client_truststore.jks"),"12345678".toCharArray());
-
+            keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
             ///////////////////////////////////
             ///// CREATE THE KEY MANAGER /////
             //////////////////////////////////
@@ -72,15 +73,55 @@ public class Client {
             ///// USE THE KEYS TO INITILISE THE SSLCONTEXT /////
             ////////////////////////////////////////////////////
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(km,  tm, SecureRandom.getInstance("SHA1PRNG"));
+            sslContext.init(km, tm, SecureRandom.getInstance("SHA1PRNG"));
 
             return sslContext;
-        } catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
         return null;
     }
+
+    public X509Certificate getCACertificate() throws Exception {
+        //Declaration of variables to be used
+        String keystoreFile = "src/SSL Cert/mykeystore.jks";
+        String caAlias = "ca";
+        String keyStorePwd = "12345678";
+
+        //Read from the keystore
+        FileInputStream input = new FileInputStream(keystoreFile);
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(input, keyStorePwd.toCharArray());
+        X509Certificate caCert = (X509Certificate) keyStore.getCertificate(caAlias);
+
+        return caCert;
+
+    }
+
+    public void checkServerCert(X509Certificate cert) throws Exception {
+        if (cert == null) {
+            throw new IllegalArgumentException("Null or zero-length certificate chain");
+        }
+        X509Certificate caCert = getCACertificate();
+
+        //Check if certificate send if your CA's
+        if (!cert.equals(caCert)) {
+            try {
+                cert.verify(caCert.getPublicKey());
+            } catch (Exception e) {
+                throw new CertificateException("Certificate not trusted", e);
+            }
+        }
+        //If we end here certificate is trusted. Check if it has expired.
+        try{
+            cert.checkValidity();
+        }
+        catch(Exception e){
+            throw new CertificateException("Certificate not trusted. It has expired",e);
+        }
+    }
+
     /*
      * To start the dialog
      */
@@ -94,13 +135,27 @@ public class Client {
             /////////////////////////////
             /// Create socket factory ///
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
             sslSocket = (SSLSocket) sslSocketFactory.createSocket(server, port);
-            sslSocket.startHandshake();
-            SSLSession sslSession = sslSocket.getSession();
-            System.out.println("SSLSession :");
-            System.out.println("\tProtocol : "+sslSession.getProtocol());
-            System.out.println("\tCipher suite : "+sslSession.getCipherSuite());
+
+            // create output first
+            sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
+            sInput = new ObjectInputStream(sslSocket.getInputStream());
+
+            //Start of Certificate verification
+            sOutput.writeObject("Hello Server");
+            String serverMsg = (String) sInput.readObject();
+            X509Certificate serverCert = (X509Certificate) sInput.readObject();
+
+            if (serverMsg.contains("Hello Client")) {
+                checkServerCert(serverCert);
+                sslSocket.startHandshake();
+                SSLSession sslSession = sslSocket.getSession();
+                System.out.println("SSL Session: ");
+                System.out.println("\t" + sslSession.getCipherSuite());
+            } else {
+                System.out.println("SSL Certificate verification fail");
+                sslSocket.close();
+            }
         }
         // if it failed not much I can so
         catch (Exception ec) {
@@ -110,15 +165,6 @@ public class Client {
 
         String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
         display(msg);
-
-		/* Creating both Data Stream */
-        try {
-            sInput = new ObjectInputStream(sslSocket.getInputStream());
-            sOutput = new ObjectOutputStream(sslSocket.getOutputStream());
-        } catch (IOException eIO) {
-            display("Exception creating new Input/output Streams: " + eIO);
-            return false;
-        }
 
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects

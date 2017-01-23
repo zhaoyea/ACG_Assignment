@@ -1,9 +1,8 @@
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
-
 import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.security.cert.*;
+import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.net.ssl.*;
@@ -48,7 +47,7 @@ public class Server {
 	//////////////////////////////////
 	///// CREATE THE SSL CONTEXT /////
 	//////////////////////////////////
-	private SSLContext createSSLContext() {
+	public SSLContext createSSLContext() {
 		try {
 
 			/////////////////////////////////////////
@@ -86,6 +85,21 @@ public class Server {
 		return null;
 	}
 
+	public X509Certificate getServerCertificate() throws Exception {
+		//Declaration of variables to be used
+		String keystoreFile = "src/SSL Cert/mykeystore.jks";
+		String serverAlias = "server_signed";
+		String keyStorePwd = "12345678";
+
+		//Read from the keystore
+		FileInputStream input = new FileInputStream(keystoreFile);
+		KeyStore keyStore = KeyStore.getInstance("JKS");
+		keyStore.load(input, keyStorePwd.toCharArray());
+		X509Certificate serverCert = (X509Certificate) keyStore.getCertificate(serverAlias);
+
+		return serverCert;
+	}
+
 	public void start() throws Exception {
 		keepGoing = true;
 
@@ -98,7 +112,7 @@ public class Server {
 			// the socket used by the server
 			SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 			SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory .createServerSocket(port);
-			sslServerSocket.setNeedClientAuth(true);
+
 			// infinite loop to wait for connections
 			while (keepGoing) {
 				// format message saying we are waiting
@@ -233,6 +247,13 @@ public class Server {
 				sOutput = new ObjectOutputStream(sslsocket.getOutputStream());
 				sInput = new ObjectInputStream(sslsocket.getInputStream());
 
+				String clientMsg = (String) sInput.readObject();
+				X509Certificate serverCert = getServerCertificate();
+				System.out.println(clientMsg);
+				if (clientMsg.equals("Hello Server")) {
+					sOutput.writeObject("Hello Client\nThis is my Certificate: ");
+					sOutput.writeObject(serverCert);
+				}
 				// read the username
 				username = (String) sInput.readObject();
 				display(username + " just connected.");
