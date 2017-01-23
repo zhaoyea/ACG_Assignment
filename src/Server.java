@@ -223,6 +223,7 @@ public class Server {
 	}
 
 	public PrivateKey getPrivateKey() throws Exception {
+		//https://stackoverflow.com/questions/3027273/how-to-store-and-load-keys-using-java-security-keystore-class
 		FileInputStream input = new FileInputStream(keystoreFile);
 		KeyStore keyStore = KeyStore.getInstance("JKS");
 		keyStore.load(input, keyStorePwd.toCharArray());
