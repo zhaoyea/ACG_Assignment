@@ -1,12 +1,12 @@
+package ACG;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.security.NoSuchAlgorithmException;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /*
- * The Client with its GUI
+ * The ACG.Client with its GUI
  */
 public class ClientGUI extends JFrame implements ActionListener {
 
@@ -23,7 +23,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	private JTextArea ta;
 	// if it is for connection
 	private boolean connected;
-	// the Client object
+	// the ACG.Client object
 	private Client client;
 	// the default port number
 	private int defaultPort;
@@ -32,7 +32,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// Constructor connection receiving a socket number
 	ClientGUI(String host, int port) {
 
-		super("Chat Client");
+		super("Chat ACG.Client");
 		defaultPort = port;
 		defaultHost = host;
 
@@ -45,12 +45,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 		tfPort = new JTextField("" + port);
 		tfPort.setHorizontalAlignment(SwingConstants.RIGHT);
 
-		serverAndPort.add(new JLabel("Server Address:  "));
+		serverAndPort.add(new JLabel("ACG.Server Address:  "));
 		serverAndPort.add(tfServer);
 		serverAndPort.add(new JLabel("Port Number:  "));
 		serverAndPort.add(tfPort);
 		serverAndPort.add(new JLabel(""));
-		// adds the Server an port field to the GUI
+		// adds the ACG.Server an port field to the GUI
 		northPanel.add(serverAndPort);
 
 		// the Label and the TextField
@@ -91,7 +91,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 	}
 
-	// called by the Client to append text in the TextArea
+	// called by the ACG.Client to append text in the TextArea
 	void append(String str) {
 		ta.append(str);
 		ta.setCaretPosition(ta.getText().length() - 1);
@@ -162,11 +162,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 				return;   // nothing I can do if port number is not valid
 			}
 
-			// try creating a new Client with GUI
+			// try creating a new ACG.Client with GUI
 			client = new Client(server, port, username, this);
-			// test if we can start the Client
+			// test if we can start the ACG.Client
 			if(!client.start())
-				return;
+                return;
 			tf.setText("");
 			label.setText("Enter your message below");
 			connected = true;
@@ -176,7 +176,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// enable the 2 buttons
 			logout.setEnabled(true);
 			whoIsIn.setEnabled(true);
-			// disable the Server and Port JTextField
+			// disable the ACG.Server and Port JTextField
 			tfServer.setEditable(false);
 			tfPort.setEditable(false);
 			// Action listener for when the user enter a message

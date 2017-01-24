@@ -1,12 +1,22 @@
-import java.io.*;
-import java.security.*;
-import java.security.cert.*;
-import java.util.*;
-import javax.crypto.*;
-import javax.net.ssl.*;
+package ACG;
+
+import Encryption.encrypt;
+
+import javax.crypto.Cipher;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.util.Scanner;
 
 /*
- * The Client that can be run both as a console or a GUI
+ * The ACG.Client that can be run both as a console or a GUI
  */
 public class Client {
 
@@ -45,87 +55,7 @@ public class Client {
         this.cg = cg;
     }
 
-    //////////////////////////////////
-    ///// CREATE THE SSL CONTEXT /////
-    //////////////////////////////////
-    private SSLContext createSSLContext() {
-        try {
-            /////////////////////////////////////////
-            ///// LOAD THE CLIENT'S PRIVATE KEY /////
-            /////////////////////////////////////////
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
-            ///////////////////////////////////
-            ///// CREATE THE KEY MANAGER /////
-            //////////////////////////////////
-            KeyManagerFactory clientKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            clientKeyManagerFactory.init(keyStore, "12345678".toCharArray());
-            KeyManager[] km = clientKeyManagerFactory.getKeyManagers();
 
-            ////////////////////////////////////
-            ///// CREATE THE TRUST MANAGER /////
-            ////////////////////////////////////
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-            trustManagerFactory.init(keyStore);
-            TrustManager[] tm = trustManagerFactory.getTrustManagers();
-
-            ////////////////////////////////////////////////////
-            ///// USE THE KEYS TO INITILISE THE SSLCONTEXT /////
-            ////////////////////////////////////////////////////
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(km, tm, SecureRandom.getInstance("SHA1PRNG"));
-
-            return sslContext;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return null;
-    }
-
-
-    /////////////////////////////////////////
-    /// Grab the CA cert for verification ///
-    /////////////////////////////////////////
-    public X509Certificate getCACertificate() throws Exception {
-        //Declaration of variables to be used
-        String keystoreFile = "src/SSL Cert/mykeystore.jks";
-        String caAlias = "ca";
-        String keyStorePwd = "12345678";
-
-        //Read from the keystore
-        FileInputStream input = new FileInputStream(keystoreFile);
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(input, keyStorePwd.toCharArray());
-        X509Certificate caCert = (X509Certificate) keyStore.getCertificate(caAlias);
-
-        return caCert;
-
-    }
-
-
-    public void checkServerCert(X509Certificate cert) throws Exception {
-        //http://stackoverflow.com/questions/6629473/validate-x-509-certificate-agains-concrete-ca-java
-        if (cert == null) {
-            throw new IllegalArgumentException("Null or zero-length certificate chain");
-        }
-        X509Certificate caCert = getCACertificate();
-
-        //Check if certificate send if your CA's
-        if (!cert.equals(caCert)) {
-            try {
-                cert.verify(caCert.getPublicKey());
-            } catch (Exception e) {
-                throw new CertificateException("Certificate not trusted", e);
-            }
-        }
-        //If we end here certificate is trusted. Check if it has expired.
-        try {
-            cert.checkValidity();
-        } catch (Exception e) {
-            throw new CertificateException("Certificate not trusted. It has expired", e);
-        }
-    }
     /*
      * To start the dialog
      */
@@ -134,7 +64,7 @@ public class Client {
         ///// CREATE THE SSLCONTEXT /////
         ///// AND WAIT CONNECTION  //////
         ////////////////////////////////
-        SSLContext sslContext = createSSLContext();
+        SSLContext sslContext = encrypt.createSSLContext();
         try {
             /////////////////////////////
             /// Create socket factory ///
@@ -147,19 +77,19 @@ public class Client {
             sInput = new ObjectInputStream(sslSocket.getInputStream());
 
             ////////////////////////////////////////////////
-            /// Start of Server Certificate verification ///
+            /// Start of ACG.Server Certificate verification ///
             ////////////////////////////////////////////////
-            sOutput.writeObject("Hello Server");
+            sOutput.writeObject("Hello ACG.Server");
             String serverMsg = (String) sInput.readObject();
-            //Read the Certificate send from Server
+            //Read the Certificate send from ACG.Server
             X509Certificate serverCert = (X509Certificate) sInput.readObject();
 
-            if (serverMsg.contains("Hello Client")) {
-                //Checking of Server Certificate
-                checkServerCert(serverCert);
+            if (serverMsg.contains("Hello ACG.Client")) {
+                //Checking of ACG.Server Certificate
+                encrypt.checkServerCert(serverCert);
                 //Start the ssl handshake if true
                 sslSocket.startHandshake();
-                sOutput.writeObject("Trusted Server");
+                sOutput.writeObject("Trusted ACG.Server");
                 SSLSession sslSession = sslSocket.getSession();
                 System.out.println("SSL Session: ");
                 System.out.println("\t" + sslSession.getCipherSuite());
@@ -169,6 +99,7 @@ public class Client {
                 display(msg);
 
                 //After handshake starts, ask User to login
+                //http://www.programmingsimplified.com/java/source-code/java-program-take-input-from-user
                 Scanner in = new Scanner(System.in);
                 System.out.println("Username: ");
                 username = in.nextLine();
@@ -197,7 +128,7 @@ public class Client {
 
 
                 // Send our username to the server this is the only message that we
-                // will send as a String. All other messages will be ChatMessage objects
+                // will send as a String. All other messages will be ACG.ChatMessage objects
                 try {
                     sOutput.writeObject(username);
                 } catch (IOException eIO) {
@@ -232,7 +163,7 @@ public class Client {
         if (cg == null)
             System.out.println(msg);      // println in console mode
         else
-            cg.append(msg + "\n");        // append to the ClientGUI JTextArea (or whatever)
+            cg.append(msg + "\n");        // append to the ACG.ClientGUI JTextArea (or whatever)
     }
 
     /*
@@ -271,18 +202,18 @@ public class Client {
     }
 
     /*
-     * To start the Client in console mode use one of the following command
-     * > java Client
-     * > java Client username
-     * > java Client username portNumber
-     * > java Client username portNumber serverAddress
+     * To start the ACG.Client in console mode use one of the following command
+     * > java ACG.Client
+     * > java ACG.Client username
+     * > java ACG.Client username portNumber
+     * > java ACG.Client username portNumber serverAddress
      * at the console prompt
      * If the portNumber is not specified 1500 is used
      * If the serverAddress is not specified "localHost" is used
      * If the username is not specified "Anonymous" is used
-     * > java Client
+     * > java ACG.Client
      * is equivalent to
-     * > java Client Anonymous 1500 localhost
+     * > java ACG.Client Anonymous 1500 localhost
      * are eqquivalent
      *
      * In console mode, if an error occurs the program simply stops
@@ -296,32 +227,32 @@ public class Client {
 
         // depending of the number of arguments provided we fall through
         switch (args.length) {
-            // > javac Client username portNumber serverAddr
+            // > javac ACG.Client username portNumber serverAddr
             case 3:
                 serverAddress = args[2];
-                // > javac Client username portNumber
+                // > javac ACG.Client username portNumber
             case 2:
                 try {
                     portNumber = Integer.parseInt(args[1]);
                 } catch (Exception e) {
                     System.out.println("Invalid port number.");
-                    System.out.println("Usage is: > java Client [username] [portNumber] [serverAddress]");
+                    System.out.println("Usage is: > java ACG.Client [username] [portNumber] [serverAddress]");
                     return;
                 }
-                // > javac Client username
+                // > javac ACG.Client username
             case 1:
                 userName = args[0];
-                // > java Client
+                // > java ACG.Client
             case 0:
                 break;
             // invalid number of arguments
             default:
-                System.out.println("Usage is: > java Client [username] [portNumber] {serverAddress]");
+                System.out.println("Usage is: > java ACG.Client [username] [portNumber] {serverAddress]");
                 return;
         }
-        // create the Client object
+        // create the ACG.Client object
         Client client = new Client(serverAddress, portNumber, userName);
-        // test if we can start the connection to the Server
+        // test if we can start the connection to the ACG.Server
         // if it failed nothing we can do
         if (!client.start())
             return;
@@ -370,7 +301,7 @@ public class Client {
                         cg.append(msg);
                     }
                 } catch (IOException e) {
-                    display("Server has close the connection: " + e);
+                    display("ACG.Server has close the connection: " + e);
                     if (cg != null)
                         cg.connectionFailed();
                     break;

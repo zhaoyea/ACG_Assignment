@@ -1,7 +1,11 @@
+package ACG;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.security.NoSuchAlgorithmException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 /*
  * The server as a GUI
@@ -21,7 +25,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 
 	// server constructor that receive the port to listen to for connection as parameter
 	ServerGUI(int port) {
-		super("Chat Server");
+		super("Chat ACG.Server");
 		server = null;
 		// in the NorthPanel the PortNumber the Start and Stop buttons
 		JPanel north = new JPanel();
@@ -74,7 +78,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 			stopStart.setText("Start");
 			return;
 		}
-      	// OK start the server
+		// OK start the server
 		int port;
 		try {
 			port = Integer.parseInt(tPortNumber.getText().trim());
@@ -83,7 +87,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 			appendEvent("Invalid port number");
 			return;
 		}
-		// ceate a new Server
+		// ceate a new ACG.Server
 		server = new Server(port, this);
 		// and start it as a thread
 		new ServerRunning().start();
@@ -91,7 +95,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 		tPortNumber.setEditable(false);
 	}
 
-	// entry point to start the Server
+	// entry point to start the ACG.Server
 	public static void main(String[] arg) {
 		// start server default port 1500
 		new ServerGUI(1500);
@@ -102,7 +106,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	 * I need to close the connection with the server to free the port
 	 */
 	public void windowClosing(WindowEvent e) {
-		// if my Server exist
+		// if my ACG.Server exist
 		if(server != null) {
 			try {
 				server.stop();			// ask the server to close the conection
@@ -124,21 +128,19 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	public void windowDeactivated(WindowEvent e) {}
 
 	/*
-	 * A thread to run the Server
+	 * A thread to run the ACG.Server
 	 */
 	class ServerRunning extends Thread {
 		public void run() {
 			try {
 				server.start();         // should execute until if fails
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			// the server failed
 			stopStart.setText("Start");
 			tPortNumber.setEditable(true);
-			appendEvent("Server crashed\n");
+			appendEvent("ACG.Server crashed\n");
 			server = null;
 		}
 	}
