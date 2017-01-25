@@ -21,7 +21,8 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -256,10 +257,10 @@ public class Server {
 
                             //1. Open the File, then use regex to find username
                             //2. Cast the username inside a variable
-                            byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
-                            String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
 
-
+                            //byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
+                            //String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
+                            FindCurUsername(decryptedUserName,decryptedPwd);
                                 
                         } else {
                             System.out.println("*************************************");
@@ -399,6 +400,69 @@ public class Server {
         // create a server object and start it
         Server server = new Server(portNumber);
         server.start();
+    }
+
+    public static String FindCurUsername(PlainUsername, PlainPwd) {
+
+            try {
+
+                fr = new FileReader(USERS_FILE_NAME);
+                br = new BufferedReader(fr);
+
+                String sCurrentLine;
+
+                br = new BufferedReader(new FileReader(USERS_FILE_NAME));
+
+                while ((sCurrentLine = br.readLine()) != null) {
+                    //System.out.println(sCurrentLine);
+
+                    String pattern = "(.*)(:)(.*)(:)(.*)";
+
+                    // Create a Pattern object
+                    Pattern r = Pattern.compile(pattern);
+
+                    // Now create matcher object.
+                    Matcher m = r.matcher(line);
+
+                    if (m.find()) {
+                        String dbUsername = m.group(0);
+                        String dbHashedPwd = m.group(2);
+                        byte[] salt = m.group(1);
+                        String HashedPwd = Hash.asHex(Hash.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
+                        if (PlainUsername.equals(dbUsername) && HashedPwd.equals(dbHashedPwd)) {
+                            System.out.println("Found value username: " + m.group(0));
+                            System.out.println("Found value salt: " + m.group(1));
+                            System.out.println("Found value hash: " + m.group(2));
+                        } else {
+                            System.out.printf("Error with the finding of hashed or smth");
+                        }
+                    } else {
+                        System.out.println("NO MATCH");
+                    }
+
+                }
+
+            } catch (IOException e) {
+
+                e.printStackTrace();
+
+            } finally {
+
+                try {
+
+                    if (br != null)
+                        br.close();
+
+                    if (fr != null)
+                        fr.close();
+
+                } catch (IOException ex) {
+
+                    ex.printStackTrace();
+
+                }
+        }
+
     }
 
     public static String asHex(byte buf[]) {
