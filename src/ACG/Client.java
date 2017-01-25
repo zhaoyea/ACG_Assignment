@@ -1,5 +1,6 @@
 package ACG;
 
+import Encryption.CryptoUtils;
 import Encryption.encrypt;
 
 import javax.crypto.Cipher;
@@ -10,7 +11,6 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Scanner;
@@ -40,7 +40,7 @@ public class Client {
      */
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
-        this(server, port, username,null);
+        this(server, port, username, null);
     }
 
     /*
@@ -104,7 +104,7 @@ public class Client {
                 option = in.nextLine();
                 //write option to Server
                 sOutput.writeObject(option);
-                if (option.equals("1") || option.equals("l") || option.equals("L") || option.equals("Login") || option.equals("login")) {
+                if (option.equals("1") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
                     System.out.println("**********************************");
                     System.out.println("** Welcome to the Register Page **");
                     System.out.println("**********************************");
@@ -112,7 +112,7 @@ public class Client {
                     username = in.nextLine();
                     System.out.println("New Password:");
                     password = in.nextLine();
-                } else if (option.equals("2") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
+                } else if (option.equals("2") || option.equals("l") || option.equals("L") || option.equals("Login") || option.equals("login")) {
                     System.out.println("********************************");
                     System.out.println("** Welcome to the Login Page **");
                     System.out.println("********************************");
@@ -182,10 +182,11 @@ public class Client {
 	 */
 
     private void display(String msg) {
-        if (cg == null)
+        if (cg == null) {
             System.out.println(msg);      // println in console mode
-        else
+        } else {
             cg.append(msg + "\n");        // append to the ACG.ClientGUI JTextArea (or whatever)
+        }
     }
 
     /*
@@ -241,7 +242,7 @@ public class Client {
      * In console mode, if an error occurs the program simply stops
      * when a GUI id used, the GUI is informed of the disconnection
      */
-    public static void main(String[] args) throws NoSuchAlgorithmException {
+    public static void main(String[] args) throws Exception {
         // default values
         int portNumber = 1500;
         String serverAddress = "localhost";
@@ -288,6 +289,8 @@ public class Client {
             System.out.print("> ");
             // read message from user
             String msg = scan.nextLine();
+            CryptoUtils cryptoUtils = new CryptoUtils();
+            msg = cryptoUtils.encrypt(msg);
             // logout if message is LOGOUT
             if (msg.equalsIgnoreCase("LOGOUT")) {
                 client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
@@ -317,6 +320,8 @@ public class Client {
                     String msg = (String) sInput.readObject();
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
+                        CryptoUtils cryptoUtils = new CryptoUtils();
+                        msg = cryptoUtils.decrypt(msg);
                         System.out.println(msg);
                         System.out.print("> ");
                     } else {
@@ -330,10 +335,13 @@ public class Client {
                 }
                 // can't happen with a String object but need the catch anyhow
                 catch (ClassNotFoundException e2) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
+
     public static String asHex(byte buf[]) {
         StringBuffer strbuf = new StringBuffer(buf.length * 2);
         int i;

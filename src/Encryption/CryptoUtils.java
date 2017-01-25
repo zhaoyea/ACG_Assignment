@@ -8,6 +8,7 @@ import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
+
 import org.apache.commons.codec.binary.Base64;
 
 /**
@@ -40,7 +41,6 @@ public class CryptoUtils {
     public static String encrypt(String unencryptedString) {
         String encryptedString = null;
         try {
-            Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, key, paramSpec);
             byte[] plainText = unencryptedString.getBytes(UNICODE_FORMAT);
             byte[] encryptedText = cipher.doFinal(plainText);
@@ -55,7 +55,6 @@ public class CryptoUtils {
     public static String decrypt(String encryptedString) {
         String decryptedText = null;
         try {
-            Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, key, paramSpec);
             byte[] encryptedText = Base64.decodeBase64(encryptedString.getBytes());
             byte[] plainText = cipher.doFinal(encryptedText);

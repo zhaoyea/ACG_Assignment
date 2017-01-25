@@ -26,11 +26,21 @@ public class ChatMessage implements Serializable {
 		this.message = message;
 	}
 
+	public ChatMessage() {
+
+	}
+
 	// getters
-	int getType() {
+	public int getType() {
 		return type;
 	}
-	String getMessage() {
+
+	public String getMessage() {
 		return message;
+	}
+
+	// setters
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

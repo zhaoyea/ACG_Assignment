@@ -245,7 +245,7 @@ public class Server {
                             /////////////////////
                             byte[] salt = Hash.getSalt();
                             String hashPwd = Hash.asHex(Hash.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
-
+                            Files.write(Paths.get(USERS_FILE_NAME), "\n".getBytes(), StandardOpenOption.APPEND);
                             Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
                             System.out.println("*************************************");
                             System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
