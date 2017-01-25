@@ -1,8 +1,6 @@
 package Encryption;
 
-import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.LineNumberReader;
 
 /**
@@ -36,7 +34,7 @@ public class UserAuthentication {
             }
         }
         return 0;
-    }
+}
 
     public static String asHex(byte buf[]) {
         StringBuffer strbuf = new StringBuffer(buf.length * 2);

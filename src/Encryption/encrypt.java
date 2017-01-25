@@ -32,7 +32,7 @@ public class encrypt {
             ///////////////////////////////////
             ///// CREATE THE KEY MANAGER /////
             //////////////////////////////////
-            KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509", "SunJSSE");
             serverKeyManagerFactory.init(keyStore, KEYSTORE_PWD.toCharArray());
             KeyManager[] km = serverKeyManagerFactory.getKeyManagers();
 
@@ -40,7 +40,7 @@ public class encrypt {
             ////////////////////////////////////
             ///// CREATE THE TRUST MANAGER /////
             ////////////////////////////////////
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509", "SunJSSE");
             trustManagerFactory.init(keyStore);
             TrustManager[] tm = trustManagerFactory.getTrustManagers();
 

@@ -9,7 +9,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,8 +22,6 @@ import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -255,12 +255,6 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-
-                            //1. Open the File, then use regex to find username
-                            //2. Cast the username inside a variable
-
-                            //byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
-                            //String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
                             UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
 
                         } else {
