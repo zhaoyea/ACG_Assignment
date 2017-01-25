@@ -1,6 +1,7 @@
 package ACG;
 
 import Encryption.Hash;
+import Encryption.UserAuthentication;
 import Encryption.encrypt;
 
 import javax.crypto.Cipher;
@@ -8,9 +9,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -213,6 +212,7 @@ public class Server {
 
                 String clientMsg = (String) sInput.readObject();
                 X509Certificate serverCert = encrypt.getServerCertificate();
+                System.out.println("*************************************");
                 System.out.println(clientMsg);
                 if (clientMsg.equals("Hello ACG.Server")) {
                     sOutput.writeObject("Hello ACG.Client\nThis is my Certificate: ");
@@ -234,20 +234,21 @@ public class Server {
                         System.out.println("*************************************");
                         System.out.println("Decrypted Username:" + new String(decryptedUserName));
                         System.out.println("Decrypted Password:" + new String(decryptedPwd));
+                        System.out.println("*************************************");
 
-                        String username = new String(decryptedUserName, "UTF-8");
-                        String password = new String(decryptedPwd, "UTF-8");
+                        String decryptedUsernameAsString = new String(decryptedUserName, "UTF-8");
+                        String decryptedPasswordAsString = new String(decryptedPwd, "UTF-8");
 
                         if (option.equals("1")) {
                             /////////////////////
                             // Register a User //
                             /////////////////////
                             byte[] salt = Hash.getSalt();
-                            String hashPwd = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
+                            String hashPwd = Hash.asHex(Hash.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
 
-                            Files.write(Paths.get(USERS_FILE_NAME), (username + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
+                            Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
                             System.out.println("*************************************");
-                            System.out.println("Users: " + username + " created. Password stored in " + USERS_FILE_NAME);
+                            System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
                             System.out.println("*************************************");
 
                         } else if (option.equals("2")) {
@@ -260,8 +261,8 @@ public class Server {
 
                             //byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
                             //String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
-                            FindCurUsername(decryptedUserName,decryptedPwd);
-                                
+                            UserAuthentication.FindCurUsername(decryptedUsernameAsString, decryptedPasswordAsString);
+
                         } else {
                             System.out.println("*************************************");
                             System.out.println("Error: Unable to compute the option");
@@ -400,69 +401,6 @@ public class Server {
         // create a server object and start it
         Server server = new Server(portNumber);
         server.start();
-    }
-
-    public static String FindCurUsername(PlainUsername, PlainPwd) {
-
-            try {
-
-                fr = new FileReader(USERS_FILE_NAME);
-                br = new BufferedReader(fr);
-
-                String sCurrentLine;
-
-                br = new BufferedReader(new FileReader(USERS_FILE_NAME));
-
-                while ((sCurrentLine = br.readLine()) != null) {
-                    //System.out.println(sCurrentLine);
-
-                    String pattern = "(.*)(:)(.*)(:)(.*)";
-
-                    // Create a Pattern object
-                    Pattern r = Pattern.compile(pattern);
-
-                    // Now create matcher object.
-                    Matcher m = r.matcher(line);
-
-                    if (m.find()) {
-                        String dbUsername = m.group(0);
-                        String dbHashedPwd = m.group(2);
-                        byte[] salt = m.group(1);
-                        String HashedPwd = Hash.asHex(Hash.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
-                        if (PlainUsername.equals(dbUsername) && HashedPwd.equals(dbHashedPwd)) {
-                            System.out.println("Found value username: " + m.group(0));
-                            System.out.println("Found value salt: " + m.group(1));
-                            System.out.println("Found value hash: " + m.group(2));
-                        } else {
-                            System.out.printf("Error with the finding of hashed or smth");
-                        }
-                    } else {
-                        System.out.println("NO MATCH");
-                    }
-
-                }
-
-            } catch (IOException e) {
-
-                e.printStackTrace();
-
-            } finally {
-
-                try {
-
-                    if (br != null)
-                        br.close();
-
-                    if (fr != null)
-                        fr.close();
-
-                } catch (IOException ex) {
-
-                    ex.printStackTrace();
-
-                }
-        }
-
     }
 
     public static String asHex(byte buf[]) {
