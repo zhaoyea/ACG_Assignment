@@ -1,5 +1,6 @@
 package ACG;
 
+import Encryption.Hash;
 import Encryption.encrypt;
 
 import javax.crypto.Cipher;
@@ -11,6 +12,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -36,6 +40,8 @@ public class Server {
     // the boolean that will be turned of to stop the server
     private boolean keepGoing;
 
+    private static final String USERS_FILE_NAME = "src/Users/users.txt";
+
     /*
      *  server constructor that receive the port to listen to for connection as parameter
      *  in console
@@ -56,9 +62,6 @@ public class Server {
     }
 
 
-
-
-
     public void start() throws Exception {
         keepGoing = true;
 
@@ -70,7 +73,7 @@ public class Server {
         try {
             // the socket used by the server
             SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
-            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory .createServerSocket(port);
+            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(port);
 
             // infinite loop to wait for connections
             while (keepGoing) {
@@ -177,9 +180,6 @@ public class Server {
     }
 
 
-
-
-
     /**
      * One instance of this thread will run for each client
      */
@@ -218,15 +218,47 @@ public class Server {
                     sOutput.writeObject(serverCert);
 
                     if (((String) sInput.readObject()).contains("Trusted ACG.Server")) {
+                        /*
+                        byte [] encryptedUserName = (byte[]) sInput.readObject();
+                        byte [] encryptedPwd = (byte[]) sInput.readObject();
+                        System.out.println(asHex(encryptedUserName));
+                        System.out.println(asHex(encryptedPwd));
+                        */
                         PrivateKey serverPrivateKey = encrypt.getPrivateKey();
                         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
+                        String option = (String) sInput.readObject();
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
-                        String charPwd = new String(decryptedPwd, "UTF-8");
-                        System.out.println("Decrypted Username:\n" + new String (decryptedUserName));
-                        System.out.println("Decrypted Password:\n" + new String (decryptedPwd));
+                        System.out.println("*************************************");
+                        System.out.println("Decrypted Username:" + new String(decryptedUserName));
+                        System.out.println("Decrypted Password:" + new String(decryptedPwd));
 
+                        String username = new String(decryptedUserName, "UTF-8");
+                        String password = new String(decryptedPwd, "UTF-8");
+
+                        if (option.equals("1")) {
+                            /////////////////////
+                            // Register a User //
+                            /////////////////////
+                            byte[] salt = Hash.getSalt();
+                            String hashPwd = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
+
+                            Files.write(Paths.get(USERS_FILE_NAME), (username + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
+                            System.out.println("*************************************");
+                            System.out.println("Users: " + username + " created. Password stored in " + USERS_FILE_NAME);
+                            System.out.println("*************************************");
+
+                        } else if (option.equals("2")) {
+                            ///////////////////////////
+                            // Authenticating a User //
+                            ///////////////////////////
+                                
+                        } else {
+                            System.out.println("*************************************");
+                            System.out.println("Error: Unable to compute the option");
+                            sslsocket.close();
+                        }
                     } else {
                         System.out.println("Failed: ACG.Client never send Hello text");
                         sslsocket.close();
@@ -361,6 +393,7 @@ public class Server {
         Server server = new Server(portNumber);
         server.start();
     }
+
     public static String asHex(byte buf[]) {
         StringBuffer strbuf = new StringBuffer(buf.length * 2);
         int i;

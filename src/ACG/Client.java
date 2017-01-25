@@ -29,7 +29,7 @@ public class Client {
     private ClientGUI cg;
 
     // the server, the port and the username
-    private String server, username, password;
+    private String server, username, password, option;
     private int port;
 
     /*
@@ -98,18 +98,40 @@ public class Client {
                 String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
                 display(msg);
 
+                Scanner in = new Scanner(System.in);
+                System.out.println("\n************ Start of Program ************");
+                System.out.println("Home Page:\n1. Register\n2. Login\nChoose 1 option: ");
+                option = in.nextLine();
+                //write option to Server
+                sOutput.writeObject(option);
+                if (option.equals("1") || option.equals("l") || option.equals("L") || option.equals("Login") || option.equals("login")) {
+                    System.out.println("**********************************");
+                    System.out.println("** Welcome to the Register Page **");
+                    System.out.println("**********************************");
+                    System.out.println("New Username:");
+                    username = in.nextLine();
+                    System.out.println("New Password:");
+                    password = in.nextLine();
+                } else if (option.equals("2") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
+                    System.out.println("********************************");
+                    System.out.println("** Welcome to the Login Page **");
+                    System.out.println("********************************");
+                    System.out.println("Username: ");
+                    username = in.nextLine();
+                    System.out.println("Password: ");
+                    password = in.nextLine();
+                } else {
+                    System.out.println("Invalid Input");
+                    sslSocket.close();
+                }
                 //After handshake starts, ask User to login
                 //http://www.programmingsimplified.com/java/source-code/java-program-take-input-from-user
-                Scanner in = new Scanner(System.in);
-                System.out.println("Username: ");
-                username = in.nextLine();
-                System.out.println("Password: ");
-                password = in.nextLine();
 
                 //Grab the server public key
                 PublicKey serverPub = serverCert.getPublicKey();
                 Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                 cipher.init(Cipher.ENCRYPT_MODE, serverPub);
+                //Encrypt the username and password
                 byte[] PlainUserName = username.getBytes("UTF8");
                 byte[] PlainPwd = password.getBytes("UTF8");
                 byte[] encryptedUserName = cipher.doFinal(PlainUserName);
@@ -122,10 +144,10 @@ public class Client {
                 System.out.println("\n\nPassword: ");
                 System.out.println(asHex(encryptedPwd));
                 */
+
                 //Send the encrypted credentials to the server
                 sOutput.writeObject(encryptedUserName);
                 sOutput.writeObject(encryptedPwd);
-
 
                 // Send our username to the server this is the only message that we
                 // will send as a String. All other messages will be ACG.ChatMessage objects

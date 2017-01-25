@@ -3,6 +3,7 @@ package Encryption;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.io.FileNotFoundException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -11,6 +12,9 @@ import java.security.spec.InvalidKeySpecException;
  * Created by tanzh on 23/01/2017.
  */
 public class Hash {
+    public Hash() throws FileNotFoundException {
+    }
+
     //https://www.owasp.org/index.php/Hashing_Java
     public static byte[] hashPassword(final char[] password, final byte[] salt, final int iterations, final int keyLength) {
         try {

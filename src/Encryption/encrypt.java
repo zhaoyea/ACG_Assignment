@@ -13,6 +13,10 @@ import java.security.cert.X509Certificate;
  */
 public class encrypt {
 
+    private static final String KEYSTORE_LOCATION = "src/SSL Cert/mykeystore.jks";
+    private static final String SERVER_ALIAS = "server_signed";
+    private static final String CA_ALIAS = "ca";
+    private static final String KEYSTORE_PWD = "12345678";
     //////////////////////////////////
     ///// CREATE THE SSL CONTEXT /////
     //////////////////////////////////
@@ -23,13 +27,13 @@ public class encrypt {
             ///// LOAD THE SERVER'S PRIVATE KEY /////
             /////////////////////////////////////////
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream("src/SSL Cert/mykeystore.jks"), "12345678".toCharArray());
+            keyStore.load(new FileInputStream(KEYSTORE_LOCATION), KEYSTORE_PWD.toCharArray());
 
             ///////////////////////////////////
             ///// CREATE THE KEY MANAGER /////
             //////////////////////////////////
             KeyManagerFactory serverKeyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            serverKeyManagerFactory.init(keyStore, "12345678".toCharArray());
+            serverKeyManagerFactory.init(keyStore, KEYSTORE_PWD.toCharArray());
             KeyManager[] km = serverKeyManagerFactory.getKeyManagers();
 
 
@@ -58,32 +62,22 @@ public class encrypt {
     /// Grab the ACG.Server cert ///
     ////////////////////////////
     public static X509Certificate getServerCertificate() throws Exception {
-        //Declaration of variables to be used
-        String keystoreFile = "src/SSL Cert/mykeystore.jks";
-        String serverAlias = "server_signed";
-        String keyStorePwd = "12345678";
-
         //Read from the keystore
-        FileInputStream input = new FileInputStream(keystoreFile);
+        FileInputStream input = new FileInputStream(KEYSTORE_LOCATION);
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(input, keyStorePwd.toCharArray());
-        X509Certificate serverCert = (X509Certificate) keyStore.getCertificate(serverAlias);
+        keyStore.load(input, KEYSTORE_PWD.toCharArray());
+        X509Certificate serverCert = (X509Certificate) keyStore.getCertificate(SERVER_ALIAS);
 
         return serverCert;
     }
 
     public static PrivateKey getPrivateKey() throws Exception {
-        //Declaration of variables to be used
-        String keystoreFile = "src/SSL Cert/mykeystore.jks";
-        String serverAlias = "server_signed";
-        String keyStorePwd = "12345678";
-
         //https://stackoverflow.com/questions/3027273/how-to-store-and-load-keys-using-java-security-keystore-class
-        FileInputStream input = new FileInputStream(keystoreFile);
+        FileInputStream input = new FileInputStream(KEYSTORE_LOCATION);
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(input, keyStorePwd.toCharArray());
-        KeyStore.PrivateKeyEntry keyEnt = (KeyStore.PrivateKeyEntry) keyStore.getEntry(serverAlias,
-                new KeyStore.PasswordProtection(keyStorePwd.toCharArray()));
+        keyStore.load(input, KEYSTORE_PWD.toCharArray());
+        KeyStore.PrivateKeyEntry keyEnt = (KeyStore.PrivateKeyEntry) keyStore.getEntry(SERVER_ALIAS,
+                new KeyStore.PasswordProtection(KEYSTORE_PWD.toCharArray()));
         PrivateKey privateKey = keyEnt.getPrivateKey();
 
         return privateKey;
@@ -93,16 +87,11 @@ public class encrypt {
     /// Grab the CA cert for verification ///
     /////////////////////////////////////////
     public static X509Certificate getCACertificate() throws Exception {
-        //Declaration of variables to be used
-        String keystoreFile = "src/SSL Cert/mykeystore.jks";
-        String caAlias = "ca";
-        String keyStorePwd = "12345678";
-
         //Read from the keystore
-        FileInputStream input = new FileInputStream(keystoreFile);
+        FileInputStream input = new FileInputStream(KEYSTORE_LOCATION);
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        keyStore.load(input, keyStorePwd.toCharArray());
-        X509Certificate caCert = (X509Certificate) keyStore.getCertificate(caAlias);
+        keyStore.load(input, KEYSTORE_PWD.toCharArray());
+        X509Certificate caCert = (X509Certificate) keyStore.getCertificate(CA_ALIAS);
 
         return caCert;
 
