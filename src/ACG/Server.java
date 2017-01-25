@@ -253,6 +253,10 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
+                            byte[] salt = Hash.getSalt();
+                            String hashPwd = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
+                            
+
                                 
                         } else {
                             System.out.println("*************************************");
