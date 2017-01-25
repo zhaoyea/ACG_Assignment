@@ -3,8 +3,7 @@ package Encryption;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.LineNumberReader;
 
 /**
  * Created by tanzh on 25/01/2017.
@@ -12,41 +11,28 @@ import java.util.regex.Pattern;
 public class UserAuthentication {
     private static final String USERS_FILE_NAME = "src/Users/users.txt";
 
-    public static int FindCurUsername(String PlainUsername, String PlainPwd) throws Exception {
-        FileReader fr = new FileReader(USERS_FILE_NAME);
-        BufferedReader br = new BufferedReader(fr);
-        try {
-            String line = br.readLine();
-            for (int i = 0; i < line.length(); i++) {
-                String dbUsername = line.split(":")[0];
-                String dbSalt = line.split(":")[2];
-                String dbHashedPwd = line.split(":")[3];
-                byte[] salt = Hash.hexStringToByteArray(dbSalt);
+    public static int VerfiyUser(String PlainUsername, String PlainPwd) throws Exception {
+        //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
+        LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith(PlainUsername)) {
+                for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
+                    String dbUsername = line.split(":")[0];
+                    String dbSalt = line.split(":")[2];
+                    String dbHashedPwd = line.split(":")[3];
+                    byte[] salt = Hash.hexStringToByteArray(dbSalt);
 
-                String HashedPwd = Hash.asHex(Hash.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
-                System.out.println(HashedPwd);
-                if (dbUsername.equals(PlainUsername) && HashedPwd.equals(dbHashedPwd)) {
-                    System.out.println("Found value username: " + dbUsername);
-                    System.out.println("Found value salt: " + dbSalt);
-                    System.out.println("Found value hash: " + dbHashedPwd);
-                    return 1;
-                } else {
-                    System.out.printf("Error with the finding of hashed or smth\n");
-                    System.exit(0);
+                    String HashedPwd = Hash.asHex(Hash.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
+                    if (dbUsername.equals(PlainUsername) && HashedPwd.equals(dbHashedPwd)) {
+                        System.out.println("Hello " + dbUsername);
+                        return 1;
+                    } else {
+                        System.out.printf("Error: Sorry! No Such user. Please register to log in!\n");
+                        System.exit(0);
+                    }
                 }
-            }
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (br != null)
-                    br.close();
-                if (fr != null)
-                    fr.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                break;
             }
         }
         return 0;

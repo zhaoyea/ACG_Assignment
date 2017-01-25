@@ -261,7 +261,7 @@ public class Server {
 
                             //byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
                             //String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
-                            UserAuthentication.FindCurUsername(decryptedUsernameAsString, decryptedPasswordAsString);
+                            UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
 
                         } else {
                             System.out.println("*************************************");
