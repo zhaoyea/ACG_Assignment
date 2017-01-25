@@ -253,9 +253,12 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-                            byte[] salt = Hash.getSalt();
-                            String hashPwd = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
-                            
+
+                            //1. Open the File, then use regex to find username
+                            //2. Cast the username inside a variable
+                            byte[] salt = Hash.hexStringToByteArray(Uname.getSalt());
+                            String hpass = Hash.asHex(Hash.hashPassword(password.toCharArray(), salt, 1000, 512));
+
 
                                 
                         } else {
