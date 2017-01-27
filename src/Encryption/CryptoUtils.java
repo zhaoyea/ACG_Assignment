@@ -10,8 +10,11 @@ import java.security.Key;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 //import org.apache.commons.codec.binary.Base64;
 
 
@@ -27,11 +30,11 @@ public class CryptoUtils {
     static Cipher cipher;
     static AlgorithmParameterSpec paramSpec;
 
-    public CryptoUtils() throws Exception {
+    public CryptoUtils() throws Exception
+{
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(128);
         key = keyGenerator.generateKey();
-
         cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
 
         SecureRandom random = new SecureRandom();
@@ -40,14 +43,18 @@ public class CryptoUtils {
 
     public static String encrypt(String unencryptedString) {
         byte[] cipherText = null;
+        String encryptedString = null;
         try {
             cipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] plainText = unencryptedString.getBytes(UNICODE_FORMAT);
+            byte[] plainText = unencryptedString.getBytes("utf-8");
             cipherText = cipher.doFinal(plainText);
+            encryptedString = new String(Base64.getEncoder().encode(cipherText));
+            encryptedString.trim();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return String.valueOf(cipherText);
+        return encryptedString;
     }
 
 
@@ -55,13 +62,27 @@ public class CryptoUtils {
         String decryptedText = null;
         try {
             cipher.init(Cipher.DECRYPT_MODE, key);
-            byte[] enstring = encryptedString.getBytes(UNICODE_FORMAT);
-            byte[] plainText = cipher.doFinal(enstring);
-            decryptedText = new String(plainText);
+            byte[] encryptedText = Base64.getMimeDecoder().decode(encryptedString);
+            byte[] plainText = cipher.doFinal(encryptedText);
+            decryptedText = new String(plainText, "utf-8");
+            decryptedText.trim();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return decryptedText;
+    }
+
+    public static void main(String args[]) throws Exception {
+        CryptoUtils cryptoUtils = new CryptoUtils();
+
+        String msg="hasdasdasdasdsadsa asdasd  asdadasdasdi";
+        String encryptMsg = cryptoUtils.encrypt(msg);
+        msg = cryptoUtils.decrypt(encryptMsg);
+
+        System.out.println("String To Encrypt: " + msg);
+        System.out.println("Encrypted String: " + encryptMsg);
+        System.out.println("Decrypted String: " + msg);
+
     }
 
     public static String asHex(byte buf[]) {

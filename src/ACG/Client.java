@@ -289,8 +289,7 @@ public class Client {
             System.out.print("> ");
             // read message from user
             String msg = scan.nextLine();
-            CryptoUtils cryptoUtils = new CryptoUtils();
-            //msg = cryptoUtils.encrypt(msg);
+
             // logout if message is LOGOUT
             if (msg.equalsIgnoreCase("LOGOUT")) {
                 client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
@@ -301,6 +300,9 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
+                CryptoUtils cryptoUtils = new CryptoUtils();
+                msg = cryptoUtils.encrypt(msg);
+                System.out.println(msg);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
             }
         }
@@ -321,7 +323,8 @@ public class Client {
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
                         CryptoUtils cryptoUtils = new CryptoUtils();
-                        //msg = cryptoUtils.decrypt(msg);
+                        System.out.println(msg);
+                        msg = cryptoUtils.decrypt(msg);
                         System.out.println(msg);
                         System.out.print("> ");
                     } else {

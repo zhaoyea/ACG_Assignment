@@ -59,6 +59,7 @@ public class AES {
     public static void setEncryptedString(String encryptedString) {
         AES.encryptedString = encryptedString;
     }
+
     public static String encrypt(String strToEncrypt)
     {
         try
