@@ -1,7 +1,7 @@
 package ACG;
 
 import Encryption.CryptoUtils;
-import Encryption.encrypt;
+import Encryption.SSLUtils;
 
 import javax.crypto.Cipher;
 import javax.net.ssl.SSLContext;
@@ -19,7 +19,6 @@ import java.util.Scanner;
  * The ACG.Client that can be run both as a console or a GUI
  */
 public class Client {
-
     // for I/O
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
@@ -64,7 +63,7 @@ public class Client {
         ///// CREATE THE SSLCONTEXT /////
         ///// AND WAIT CONNECTION  //////
         ////////////////////////////////
-        SSLContext sslContext = encrypt.createSSLContext();
+        SSLContext sslContext = SSLUtils.createSSLContext();
         try {
             /////////////////////////////
             /// Create socket factory ///
@@ -86,7 +85,7 @@ public class Client {
 
             if (serverMsg.contains("Hello ACG.Client")) {
                 //Checking of ACG.Server Certificate
-                encrypt.checkServerCert(serverCert);
+                SSLUtils.checkServerCert(serverCert);
                 //Start the ssl handshake if true
                 sslSocket.startHandshake();
                 sOutput.writeObject("Trusted ACG.Server");
@@ -301,9 +300,8 @@ public class Client {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
                 CryptoUtils cryptoUtils = new CryptoUtils();
-                msg = cryptoUtils.encrypt(msg);
-                System.out.println(msg);
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
+                String encryptedMsg = cryptoUtils.encrypt(msg);
+                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, encryptedMsg));
             }
         }
         // done disconnect
@@ -320,12 +318,13 @@ public class Client {
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
+                    String cipherText = msg.split(":")[3];
+
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
-                        CryptoUtils cryptoUtils = new CryptoUtils();
+                        String plainText = CryptoUtils.decrypt(cipherText);
                         System.out.println(msg);
-                        msg = cryptoUtils.decrypt(msg);
-                        System.out.println(msg);
+                        System.out.println("Decrypted text:" + plainText);
                         System.out.print("> ");
                     } else {
                         cg.append(msg);
@@ -359,3 +358,4 @@ public class Client {
         return strbuf.toString();
     }
 }
+

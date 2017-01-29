@@ -9,10 +9,10 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 
 /**
- * Created by tanzh on 23/01/2017.
+ * Created by tanzh on 30/01/2017.
  */
-public class Hash {
-    public Hash() throws FileNotFoundException {
+public class HashUtils {
+    public HashUtils() throws FileNotFoundException {
     }
 
     //https://www.owasp.org/index.php/Hashing_Java

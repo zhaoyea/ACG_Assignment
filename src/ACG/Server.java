@@ -1,8 +1,8 @@
 package ACG;
 
-import Encryption.Hash;
+import Encryption.HashUtils;
+import Encryption.SSLUtils;
 import Encryption.UserAuthentication;
-import Encryption.encrypt;
 
 import javax.crypto.Cipher;
 import javax.net.ssl.SSLContext;
@@ -69,7 +69,7 @@ public class Server {
         ///// CREATE THE SSLCONTEXT /////
         ///// AND WAIT CONNECTION  //////
         ////////////////////////////////
-        SSLContext sslContext = encrypt.createSSLContext();
+        SSLContext sslContext = SSLUtils.createSSLContext();
         try {
             // the socket used by the server
             SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
@@ -211,7 +211,7 @@ public class Server {
                 sInput = new ObjectInputStream(sslsocket.getInputStream());
 
                 String clientMsg = (String) sInput.readObject();
-                X509Certificate serverCert = encrypt.getServerCertificate();
+                X509Certificate serverCert = SSLUtils.getServerCertificate();
                 System.out.println("*************************************");
                 System.out.println(clientMsg);
                 if (clientMsg.equals("Hello ACG.Server")) {
@@ -225,7 +225,7 @@ public class Server {
                         System.out.println(asHex(encryptedUserName));
                         System.out.println(asHex(encryptedPwd));
                         */
-                        PrivateKey serverPrivateKey = encrypt.getPrivateKey();
+                        PrivateKey serverPrivateKey = SSLUtils.getPrivateKey();
                         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
                         String option = (String) sInput.readObject();
@@ -243,8 +243,8 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
-                            byte[] salt = Hash.getSalt();
-                            String hashPwd = Hash.asHex(Hash.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
+                            byte[] salt = HashUtils.getSalt();
+                            String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
                             Files.write(Paths.get(USERS_FILE_NAME), "\n".getBytes(), StandardOpenOption.APPEND);
                             Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
                             System.out.println("*************************************");

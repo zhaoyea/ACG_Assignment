@@ -3,16 +3,8 @@ package Encryption;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESedeKeySpec;
-import javax.crypto.spec.IvParameterSpec;
-import java.security.Key;
-import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
 
 //import org.apache.commons.codec.binary.Base64;
 //import org.apache.commons.codec.binary.Base64;
@@ -30,15 +22,11 @@ public class CryptoUtils {
     static Cipher cipher;
     static AlgorithmParameterSpec paramSpec;
 
-    public CryptoUtils() throws Exception
-{
+    public CryptoUtils() throws Exception {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(128);
         key = keyGenerator.generateKey();
         cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-
-        SecureRandom random = new SecureRandom();
-        byte[] iv = new byte[8];
     }
 
     public static String encrypt(String unencryptedString) {
@@ -49,7 +37,6 @@ public class CryptoUtils {
             byte[] plainText = unencryptedString.getBytes("utf-8");
             cipherText = cipher.doFinal(plainText);
             encryptedString = new String(Base64.getEncoder().encode(cipherText));
-            encryptedString.trim();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,11 +48,10 @@ public class CryptoUtils {
     public static String decrypt(String encryptedString) {
         String decryptedText = null;
         try {
-            cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] encryptedText = Base64.getMimeDecoder().decode(encryptedString);
+            cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] plainText = cipher.doFinal(encryptedText);
             decryptedText = new String(plainText, "utf-8");
-            decryptedText.trim();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,7 +61,7 @@ public class CryptoUtils {
     public static void main(String args[]) throws Exception {
         CryptoUtils cryptoUtils = new CryptoUtils();
 
-        String msg="hasdasdasdasdsadsa asdasd  asdadasdasdi";
+        String msg="hi";
         String encryptMsg = cryptoUtils.encrypt(msg);
         msg = cryptoUtils.decrypt(encryptMsg);
 

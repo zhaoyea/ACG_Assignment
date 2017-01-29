@@ -19,9 +19,9 @@ public class UserAuthentication {
                     String dbUsername = line.split(":")[0];
                     String dbSalt = line.split(":")[2];
                     String dbHashedPwd = line.split(":")[3];
-                    byte[] salt = Hash.hexStringToByteArray(dbSalt);
+                    byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
 
-                    String HashedPwd = Hash.asHex(Hash.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
+                    String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
                     if (dbUsername.equals(PlainUsername) && HashedPwd.equals(dbHashedPwd)) {
                         System.out.println("Hello " + dbUsername);
                         return 1;

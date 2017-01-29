@@ -9,10 +9,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * Created by tanzh on 24/01/2017.
+ * Created by tanzh on 30/01/2017.
  */
-public class encrypt {
-
+public class SSLUtils {
     private static final String KEYSTORE_LOCATION = "src/SSL Cert/mykeystore.jks";
     private static final String SERVER_ALIAS = "server_signed";
     private static final String CA_ALIAS = "ca";
