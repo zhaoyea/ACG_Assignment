@@ -243,9 +243,10 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
+                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
                             byte[] salt = HashUtils.getSalt();
                             String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
-                            Files.write(Paths.get(USERS_FILE_NAME), "\n".getBytes(), StandardOpenOption.APPEND);
+                            Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
                             Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
                             System.out.println("*************************************");
                             System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);

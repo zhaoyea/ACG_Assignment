@@ -13,41 +13,74 @@ public class UserAuthentication {
         //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line;
+        String errMsg;
         while ((line = reader.readLine()) != null) {
-            if (line.startsWith(PlainUsername)) {
-                for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
-                    String dbUsername = line.split(":")[0];
-                    String dbSalt = line.split(":")[2];
-                    String dbHashedPwd = line.split(":")[3];
-                    byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
+            for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
+                String dbUsername = line.split(":")[0];
+                String dbSalt = line.split(":")[2];
+                String dbHashedPwd = line.split(":")[3];
+                byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
 
-                    String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
-                    if (dbUsername.equals(PlainUsername) && HashedPwd.equals(dbHashedPwd)) {
+                String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
+                if (PlainUsername == null || PlainUsername.isEmpty() || PlainPwd == null || PlainPwd.isEmpty()) {
+                    errMsg = "Error: Empty Field!\nPlease try again!";
+                    System.out.println(errMsg);
+                    System.out.println("*************************************");
+                    break;
+                } else {
+                    if (!PlainUsername.equals(dbUsername) && !HashedPwd.equals(dbHashedPwd)) {
+                        errMsg = "Error: Username or Password wrong!\nPlease try again!";
+                        System.out.println(errMsg);
+                        System.out.println("*************************************");
+                        break;
+                    } else {
+                        System.out.println("Login Success!");
                         System.out.println("Hello " + dbUsername);
                         return 1;
-                    } else {
-                        System.out.printf("Error: Sorry! No Such user. Please register to log in!\n");
-                        System.exit(0);
                     }
                 }
-                break;
             }
+            System.exit(0);
         }
         return 0;
-}
+    }
 
-    public static String asHex(byte buf[]) {
-        StringBuffer strbuf = new StringBuffer(buf.length * 2);
-        int i;
-
-        for (i = 0; i < buf.length; i++) {
-            if (((int) buf[i] & 0xff) < 0x10)
-                strbuf.append("0");
-
-            strbuf.append(Long.toString((int) buf[i] & 0xff, 16));
+    public static boolean RegisterUserVerfiy(String Username, String Password) throws Exception {
+        //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
+        LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
+        String line;
+        String errMsg;
+        while ((line = reader.readLine()) != null) {
+            for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
+                String dbUsername = line.split(":")[0];
+                System.out.println(dbUsername);
+                if (Username == null || Username.isEmpty() || Password == null || Password.isEmpty()) {
+                    errMsg = "Error: Username or Password wrong!\nPlease try again!";
+                    System.out.println(errMsg);
+                    System.out.println("*************************************");
+                    break;
+                } else {
+                    //Check if username exist
+                    if (dbUsername.equals(Username)) {
+                        errMsg = "Error: User already exist!";
+                        System.out.println(errMsg);
+                        System.out.println("*************************************");
+                        break;
+                    }
+                    if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"))) {
+                        System.out.println("omg i pass my password!!");
+                        errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - At least one special character\n - And minium 8 in length";
+                        System.out.println(errMsg);
+                        System.out.println("*************************************");
+                        break;
+                    }
+                    else {
+                        return true;
+                    }
+                }
+            }
+            System.exit(0);
         }
-
-        return strbuf.toString();
+        return false;
     }
 }
-
