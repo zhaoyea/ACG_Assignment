@@ -7,6 +7,7 @@ import java.io.LineNumberReader;
  * Created by tanzh on 25/01/2017.
  */
 public class UserAuthentication {
+
     private static final String USERS_FILE_NAME = "src/Users/users.txt";
 
     public static int VerfiyUser(String PlainUsername, String PlainPwd) throws Exception {
@@ -17,7 +18,7 @@ public class UserAuthentication {
 
         if (reader.readLine() == null) {
             System.out.println("Error: No such User");
-            System.exit(0);
+            return 0;
         }
 
         while ((line = reader.readLine()) != null) {
@@ -46,7 +47,7 @@ public class UserAuthentication {
                     }
                 }
             }
-            System.exit(0);
+            return 0;
         }
         return 0;
     }
@@ -62,7 +63,7 @@ public class UserAuthentication {
                 errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
                 System.out.println(errMsg);
                 System.out.println("*************************************");
-                System.exit(0);
+                return false;
             }
         }
 
@@ -94,7 +95,7 @@ public class UserAuthentication {
                     }
                 }
             }
-            System.exit(0);
+            return false;
         }
         return false;
     }

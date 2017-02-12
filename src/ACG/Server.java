@@ -1,10 +1,14 @@
 package ACG;
 
+import Encryption.CryptoUtils;
 import Encryption.HashUtils;
 import Encryption.SSLUtils;
 import Encryption.UserAuthentication;
 
 import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -16,12 +20,16 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static ACG.Client.cipherUtil;
+import static ACG.Client.key;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -197,8 +205,12 @@ public class Server {
         // the date I connect
         String date;
         String msg;
+        byte[] decryptedKey;
+        SecretKey key;
+        Cipher cipherUtil;
+        String message;
 
-        // Constructor
+            // Constructor
         ClientThread(SSLSocket sslsocket) throws Exception {
             // a unique id
             id = ++uniqueId;
@@ -229,7 +241,6 @@ public class Server {
                         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
                         String option = (String) sInput.readObject();
-                        System.out.println(option);
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
                         System.out.println("*************************************");
@@ -244,11 +255,18 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
-                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
+                            if(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString)== false){
+                                keepGoing = false;
+                                return;
+                            }
                             byte[] salt = HashUtils.getSalt();
                             String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
                             Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
                             Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
+                            decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
+                            key = new SecretKeySpec(decryptedKey,"AES");
+
+
                             System.out.println("*************************************");
                             System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
                             System.out.println("*************************************");
@@ -257,7 +275,12 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-                            UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
+                            if(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString)==0){
+                                keepGoing = false;
+                                return;
+                            }
+                            decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
+                            key = new SecretKeySpec(decryptedKey,"AES");
 
                         } else {
                             System.out.println("*************************************");
@@ -301,13 +324,21 @@ public class Server {
                     break;
                 }
                 // the messaage part of the ACG.ChatMessage
-                String message = cm.getMessage();
+                message = cm.getMessage();
 
                 // Switch on the type of message receive
                 switch (cm.getType()) {
 
                     case ChatMessage.MESSAGE:
-                        broadcast(username + ": " + message);
+                        try {
+                            cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        }
+                        String plainText = CryptoUtils.decrypt(message ,key, cipherUtil);
+                        broadcast(username + ": " + plainText);
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
@@ -358,7 +389,11 @@ public class Server {
             }
             // write the message to the stream
             try {
-                sOutput.writeObject(msg);
+
+                String plainText = sdf.format(new Date()) + " " + username + ": " + CryptoUtils.decrypt(message ,key, cipherUtil);
+                String reEncrypt = CryptoUtils.encrypt(plainText ,key, cipherUtil);
+
+                sOutput.writeObject(reEncrypt);
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {

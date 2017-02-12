@@ -163,7 +163,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 			}
 
 			// try creating a new ACG.Client with GUI
-			client = new Client(server, port, username, this);
+			try {
+				client = new Client(server, port, username, this);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 			// test if we can start the ACG.Client
 			if(!client.start())
                 return;

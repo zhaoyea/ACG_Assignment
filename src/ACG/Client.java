@@ -4,6 +4,8 @@ import Encryption.CryptoUtils;
 import Encryption.SSLUtils;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -23,6 +25,8 @@ public class Client {
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
     private SSLSocket sslSocket;
+    static SecretKey key;
+    static Cipher cipherUtil;
 
     // if I use a GUI or not
     private ClientGUI cg;
@@ -130,11 +134,20 @@ public class Client {
                 PublicKey serverPub = serverCert.getPublicKey();
                 Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                 cipher.init(Cipher.ENCRYPT_MODE, serverPub);
+
+                KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+                keyGenerator.init(128);
+                key = keyGenerator.generateKey();
+                cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
+
+
                 //Encrypt the username and password
                 byte[] PlainUserName = username.getBytes("UTF8");
                 byte[] PlainPwd = password.getBytes("UTF8");
                 byte[] encryptedUserName = cipher.doFinal(PlainUserName);
                 byte[] encryptedPwd = cipher.doFinal(PlainPwd);
+                byte[] encryptedSkey = cipher.doFinal(key.getEncoded());
+
                 /*
                 // Print the encryptedUserName
                 System.out.println("\n\nUsername: ");
@@ -147,6 +160,8 @@ public class Client {
                 //Send the encrypted credentials to the server
                 sOutput.writeObject(encryptedUserName);
                 sOutput.writeObject(encryptedPwd);
+                sOutput.writeObject(encryptedSkey);
+
 
                 // Send our username to the server this is the only message that we
                 // will send as a String. All other messages will be ACG.ChatMessage objects
@@ -300,7 +315,7 @@ public class Client {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
                 CryptoUtils cryptoUtils = new CryptoUtils();
-                String encryptedMsg = cryptoUtils.encrypt(msg);
+                String encryptedMsg = cryptoUtils.encrypt(msg, key, cipherUtil);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, encryptedMsg));
             }
         }
@@ -318,13 +333,11 @@ public class Client {
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
-                    String cipherText = msg.split(":")[3];
+                    String plainText = CryptoUtils.decrypt(msg ,key, cipherUtil);
 
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
-                        String plainText = CryptoUtils.decrypt(cipherText);
-                        System.out.println(msg);
-                        System.out.println("Decrypted text:" + plainText);
+                        System.out.println(plainText);
                         System.out.print("> ");
                     } else {
                         cg.append(msg);

@@ -22,14 +22,9 @@ public class CryptoUtils {
     static Cipher cipher;
     static AlgorithmParameterSpec paramSpec;
 
-    public CryptoUtils() throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        keyGenerator.init(128);
-        key = keyGenerator.generateKey();
-        cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-    }
 
-    public static String encrypt(String unencryptedString) {
+
+    public static String encrypt(String unencryptedString, SecretKey key, Cipher cipher) {
         byte[] cipherText = null;
         String encryptedString = null;
         try {
@@ -45,7 +40,7 @@ public class CryptoUtils {
     }
 
 
-    public static String decrypt(String encryptedString) {
+    public static String decrypt(String encryptedString, SecretKey key, Cipher cipher) {
         String decryptedText = null;
         try {
             byte[] encryptedText = Base64.getMimeDecoder().decode(encryptedString);
@@ -58,18 +53,7 @@ public class CryptoUtils {
         return decryptedText;
     }
 
-    public static void main(String args[]) throws Exception {
-        CryptoUtils cryptoUtils = new CryptoUtils();
 
-        String msg="hi";
-        String encryptMsg = cryptoUtils.encrypt(msg);
-        msg = cryptoUtils.decrypt(encryptMsg);
-
-        System.out.println("String To Encrypt: " + msg);
-        System.out.println("Encrypted String: " + encryptMsg);
-        System.out.println("Decrypted String: " + msg);
-
-    }
 
     public static String asHex(byte buf[]) {
 
