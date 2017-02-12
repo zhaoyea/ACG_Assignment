@@ -229,6 +229,7 @@ public class Server {
                         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
                         String option = (String) sInput.readObject();
+                        System.out.println(option);
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
                         System.out.println("*************************************");

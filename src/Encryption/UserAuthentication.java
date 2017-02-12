@@ -14,6 +14,12 @@ public class UserAuthentication {
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line;
         String errMsg;
+
+        if (reader.readLine() == null) {
+            System.out.println("Error: No such User");
+            System.exit(0);
+        }
+
         while ((line = reader.readLine()) != null) {
             for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
                 String dbUsername = line.split(":")[0];
@@ -50,6 +56,16 @@ public class UserAuthentication {
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line;
         String errMsg;
+
+        if (reader.readLine() == null) {
+            if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
+                errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
+                System.out.println(errMsg);
+                System.out.println("*************************************");
+                System.exit(0);
+            }
+        }
+
         while ((line = reader.readLine()) != null) {
             for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
                 String dbUsername = line.split(":")[0];
@@ -67,9 +83,8 @@ public class UserAuthentication {
                         System.out.println("*************************************");
                         break;
                     }
-                    if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"))) {
-                        System.out.println("omg i pass my password!!");
-                        errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - At least one special character\n - And minium 8 in length";
+                    if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
+                        errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
                         System.out.println(errMsg);
                         System.out.println("*************************************");
                         break;
