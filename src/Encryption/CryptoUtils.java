@@ -1,7 +1,6 @@
 package Encryption;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Base64;

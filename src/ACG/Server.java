@@ -28,9 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import static ACG.Client.cipherUtil;
-import static ACG.Client.key;
-
 /*
  * The server that can be run both as a console application or a GUI
  */
