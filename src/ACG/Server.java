@@ -95,11 +95,10 @@ public class Server {
                 if (!keepGoing)
                     break;
                 ClientThread t = new ClientThread(sslsocket);  // make a thread of it
-
                 al.add(t);                                    // save it in the ArrayList
                 t.start();
             }
-            // I was asked to stop
+            // I was asked to stops 
             try {
                 sslServerSocket.close();
                 for (int i = 0; i < al.size(); ++i) {
