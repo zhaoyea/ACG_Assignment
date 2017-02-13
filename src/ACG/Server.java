@@ -255,10 +255,7 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
-                            if(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString)== false){
-                                keepGoing = false;
-                                return;
-                            }
+                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
                             byte[] salt = HashUtils.getSalt();
                             String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
                             Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
@@ -275,10 +272,7 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-                            if(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString)==0){
-                                keepGoing = false;
-                                return;
-                            }
+                            UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
                             decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
                             key = new SecretKeySpec(decryptedKey,"AES");
 

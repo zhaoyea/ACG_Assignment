@@ -18,7 +18,7 @@ public class UserAuthentication {
 
         if (reader.readLine() == null) {
             System.out.println("Error: No such User");
-            return 0;
+            System.exit(0);
         }
 
         while ((line = reader.readLine()) != null) {
@@ -47,7 +47,7 @@ public class UserAuthentication {
                     }
                 }
             }
-            return 0;
+            System.exit(0);
         }
         return 0;
     }
@@ -63,7 +63,7 @@ public class UserAuthentication {
                 errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
                 System.out.println(errMsg);
                 System.out.println("*************************************");
-                return false;
+                System.exit(0);
             }
         }
 
@@ -95,7 +95,7 @@ public class UserAuthentication {
                     }
                 }
             }
-            return false;
+            System.exit(0);
         }
         return false;
     }
