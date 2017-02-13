@@ -98,7 +98,7 @@ public class Server {
                 al.add(t);                                    // save it in the ArrayList
                 t.start();
             }
-            // I was asked to stop
+            // I was asked to stops 
             try {
                 sslServerSocket.close();
                 for (int i = 0; i < al.size(); ++i) {
