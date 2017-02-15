@@ -212,7 +212,6 @@ public class Server {
             // a unique id
             id = ++uniqueId;
             this.sslsocket = sslsocket;
-            Client client = new Client();
             /* Creating both Data Stream */
             System.out.println("Thread trying to create Object Input/Output Streams");
             try {
@@ -258,18 +257,20 @@ public class Server {
                             // Register a User //
                             /////////////////////
                             //UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
-                            if (UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
-                                client.disconnect();
+                            if (Boolean.TRUE.equals(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString))) {
+                                byte[] salt = HashUtils.getSalt();
+                                String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
+                                Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
+                                Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
+
+                                System.out.println("*************************************");
+                                System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
+                                System.out.println("*************************************");
+
+                            } else {
+                                remove(id);
+                                close();
                             }
-
-                            byte[] salt = HashUtils.getSalt();
-                            String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
-                            Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
-                            Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
-
-                            System.out.println("*************************************");
-                            System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
-                            System.out.println("*************************************");
 
                         } else if (option.equals("2")) {
                             ///////////////////////////
@@ -277,7 +278,8 @@ public class Server {
                             ///////////////////////////
                             //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
                             if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
-                                client.disconnect();
+                                remove(id);
+                                close();
                             }
                         } else {
                             System.out.println("*************************************");

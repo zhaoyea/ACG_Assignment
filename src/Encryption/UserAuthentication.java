@@ -63,40 +63,40 @@ public class UserAuthentication {
                 errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
                 System.out.println(errMsg);
                 System.out.println("*************************************");
-                System.exit(0);
+                return false;
             }
         }
 
         while ((line = reader.readLine()) != null) {
+            System.out.println("INSIDE WHILE LOOP");
             for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
+                System.out.println("INSIDE FOR LOOP");
                 String dbUsername = line.split(":")[0];
                 System.out.println(dbUsername);
+
                 if (Username == null || Username.isEmpty() || Password == null || Password.isEmpty()) {
                     errMsg = "Error: Username or Password wrong!\nPlease try again!";
                     System.out.println(errMsg);
                     System.out.println("*************************************");
                     break;
+                }
+                if (dbUsername.equals(Username)) {
+                    errMsg = "Error: User already exist!";
+                    System.out.println(errMsg);
+                    System.out.println("*************************************");
+                    break;
+                }
+                if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
+                    errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
+                    System.out.println(errMsg);
+                    System.out.println("*************************************");
+                    break;
                 } else {
-                    //Check if username exist
-                    if (dbUsername.equals(Username)) {
-                        errMsg = "Error: User already exist!";
-                        System.out.println(errMsg);
-                        System.out.println("*************************************");
-                        break;
-                    }
-                    if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
-                        errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
-                        System.out.println(errMsg);
-                        System.out.println("*************************************");
-                        break;
-                    }
-                    else {
-                        return true;
-                    }
+                    return true;
                 }
             }
-            return false;
         }
         return false;
     }
 }
+

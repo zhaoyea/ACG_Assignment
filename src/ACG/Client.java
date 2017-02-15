@@ -41,9 +41,7 @@ public class Client {
      *  port: the port number
      *  username: the username
      */
-    public Client() {
 
-    }
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
         this(server, port, username, null, null);
@@ -145,7 +143,7 @@ public class Client {
                         password = in.nextLine();
                     } else {
                         System.out.println("Invalid Input");
-                        sslSocket.close();
+                        disconnect();
                     }
                 } else {
                     String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
