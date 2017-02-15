@@ -29,7 +29,7 @@ public class Client {
     static Cipher cipherUtil;
 
     // if I use a GUI or not
-    private ClientGUI cg;
+    private LoginGUI cg;
 
     // the server, the port and the username
     private String server, username, password, option;
@@ -43,17 +43,18 @@ public class Client {
      */
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
-        this(server, port, username, null);
+        this(server, port, username, null, null);
     }
 
     /*
      * Constructor call when used from a GUI
      * in console mode the ClienGUI parameter is null
      */
-    Client(String server, int port, String username, ClientGUI cg) {
+    Client(String server, int port, String username, String password, LoginGUI cg) {
         this.server = server;
         this.port = port;
         this.username = username;
+        this.password = password;
         // save if we are in GUI mode or not
         this.cg = cg;
     }
@@ -93,42 +94,7 @@ public class Client {
                 //Start the ssl handshake if true
                 sslSocket.startHandshake();
                 sOutput.writeObject("Trusted ACG.Server");
-                SSLSession sslSession = sslSocket.getSession();
-                System.out.println("SSL Session: ");
-                System.out.println("\t" + sslSession.getCipherSuite());
 
-
-                String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
-                display(msg);
-
-                Scanner in = new Scanner(System.in);
-                System.out.println("\n************ Start of Program ************");
-                System.out.println("Home Page:\n1. Register\n2. Login\nChoose 1 option: ");
-                option = in.nextLine();
-                //write option to Server
-                sOutput.writeObject(option);
-                if (option.equals("1") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
-                    System.out.println("**********************************");
-                    System.out.println("** Welcome to the Register Page **");
-                    System.out.println("**********************************");
-                    System.out.println("New Username:");
-                    username = in.nextLine();
-                    System.out.println("New Password:");
-                    password = in.nextLine();
-                } else if (option.equals("2") || option.equals("l") || option.equals("L") || option.equals("Login") || option.equals("login")) {
-                    System.out.println("********************************");
-                    System.out.println("** Welcome to the Login Page **");
-                    System.out.println("********************************");
-                    System.out.println("Username: ");
-                    username = in.nextLine();
-                    System.out.println("Password: ");
-                    password = in.nextLine();
-                } else {
-                    System.out.println("Invalid Input");
-                    sslSocket.close();
-                }
-                //After handshake starts, ask User to login
-                //http://www.programmingsimplified.com/java/source-code/java-program-take-input-from-user
 
                 //Grab the server public key
                 PublicKey serverPub = serverCert.getPublicKey();
@@ -138,15 +104,60 @@ public class Client {
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                 keyGenerator.init(128);
                 key = keyGenerator.generateKey();
+                System.out.println(key);
                 cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
 
+                byte[] encryptedSkey = cipher.doFinal(key.getEncoded());
+                sOutput.writeObject(encryptedSkey);
+
+                if (cg == null) {
+                    SSLSession sslSession = sslSocket.getSession();
+                    System.out.println("SSL Session: ");
+                    System.out.println("\t" + sslSession.getCipherSuite());
+
+
+                    String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
+                    display(msg);
+                    Scanner in = new Scanner(System.in);
+                    System.out.println("\n************ Start of Program ************");
+                    System.out.println("Home Page:\n1. Register\n2. Login\nChoose 1 option: ");
+                    option = in.nextLine();
+                    //write option to Server
+                    sOutput.writeObject(option);
+                    if (option.equals("1") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
+                        System.out.println("**********************************");
+                        System.out.println("** Welcome to the Register Page **");
+                        System.out.println("**********************************");
+                        System.out.println("New Username:");
+                        username = in.nextLine();
+                        System.out.println("New Password:");
+                        password = in.nextLine();
+                    } else if (option.equals("2") || option.equals("l") || option.equals("L") || option.equals("Login") || option.equals("login")) {
+                        System.out.println("********************************");
+                        System.out.println("** Welcome to the Login Page **");
+                        System.out.println("********************************");
+                        System.out.println("Username: ");
+                        username = in.nextLine();
+                        System.out.println("Password: ");
+                        password = in.nextLine();
+                    } else {
+                        System.out.println("Invalid Input");
+                        sslSocket.close();
+                    }
+                } else {
+                    String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
+                    cg.append(msg);
+                    sOutput.writeObject("2");
+                }
+                //After handshake starts, ask User to login
+                //http://www.programmingsimplified.com/java/source-code/java-program-take-input-from-user
 
                 //Encrypt the username and password
                 byte[] PlainUserName = username.getBytes("UTF8");
                 byte[] PlainPwd = password.getBytes("UTF8");
                 byte[] encryptedUserName = cipher.doFinal(PlainUserName);
                 byte[] encryptedPwd = cipher.doFinal(PlainPwd);
-                byte[] encryptedSkey = cipher.doFinal(key.getEncoded());
+
 
                 /*
                 // Print the encryptedUserName
@@ -160,7 +171,6 @@ public class Client {
                 //Send the encrypted credentials to the server
                 sOutput.writeObject(encryptedUserName);
                 sOutput.writeObject(encryptedPwd);
-                sOutput.writeObject(encryptedSkey);
 
 
                 // Send our username to the server this is the only message that we
@@ -333,7 +343,12 @@ public class Client {
             while (true) {
                 try {
                     String msg = (String) sInput.readObject();
-                    String plainText = CryptoUtils.decrypt(msg ,key, cipherUtil);
+                    System.out.println(msg);
+
+                    String cipherText = msg.split(":")[3];
+                    System.out.println(cipherText);
+                    String plainText = CryptoUtils.decrypt(cipherText, key, cipherUtil);
+                    System.out.println(plainText);
 
                     // if console mode print the message and add back the prompt
                     if (cg == null) {

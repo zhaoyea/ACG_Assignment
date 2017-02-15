@@ -149,10 +149,10 @@ public class Server {
     /*
      *  to broadcast a message to all Clients
      */
-    private synchronized void broadcast(String message) {
+    private synchronized void broadcast(String username,String message) {
         // add HH:mm:ss and \n to the message
         String time = sdf.format(new Date());
-        String messageLf = time + " " + message + "\n";
+        String messageLf = time + " " + username  + ": " +message+ "\n";
         // display message on console or GUI
         if (sg == null)
             System.out.print(messageLf);
@@ -228,15 +228,19 @@ public class Server {
                     sOutput.writeObject(serverCert);
 
                     if (((String) sInput.readObject()).contains("Trusted ACG.Server")) {
+
+                        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+                        PrivateKey serverPrivateKey = SSLUtils.getPrivateKey();
+                        cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
+
+                        decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
+                        key = new SecretKeySpec(decryptedKey,"AES");
                         /*
                         byte [] encryptedUserName = (byte[]) sInput.readObject();
                         byte [] encryptedPwd = (byte[]) sInput.readObject();
                         System.out.println(asHex(encryptedUserName));
                         System.out.println(asHex(encryptedPwd));
                         */
-                        PrivateKey serverPrivateKey = SSLUtils.getPrivateKey();
-                        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-                        cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
                         String option = (String) sInput.readObject();
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
@@ -253,13 +257,11 @@ public class Server {
                             // Register a User //
                             /////////////////////
                             UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
+
                             byte[] salt = HashUtils.getSalt();
                             String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
                             Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
                             Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
-                            decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
-                            key = new SecretKeySpec(decryptedKey,"AES");
-
 
                             System.out.println("*************************************");
                             System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
@@ -270,8 +272,6 @@ public class Server {
                             // Authenticating a User //
                             ///////////////////////////
                             UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
-                            decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
-                            key = new SecretKeySpec(decryptedKey,"AES");
 
                         } else {
                             System.out.println("*************************************");
@@ -329,7 +329,14 @@ public class Server {
                             e.printStackTrace();
                         }
                         String plainText = CryptoUtils.decrypt(message ,key, cipherUtil);
-                        broadcast(username + ": " + plainText);
+                        String reEncrypt = null;
+                        for(int i = 0;i<al.size();++i){
+                            ClientThread ck = al.get(i);
+                            System.out.println(ck.key+"THISISKEY");
+                            reEncrypt = CryptoUtils.encrypt(plainText ,ck.key, cipherUtil);
+                            broadcast(username, reEncrypt);
+                        }
+
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
@@ -380,11 +387,7 @@ public class Server {
             }
             // write the message to the stream
             try {
-
-                String plainText = sdf.format(new Date()) + " " + username + ": " + CryptoUtils.decrypt(message ,key, cipherUtil);
-                String reEncrypt = CryptoUtils.encrypt(plainText ,key, cipherUtil);
-
-                sOutput.writeObject(reEncrypt);
+                sOutput.writeObject(msg);
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
