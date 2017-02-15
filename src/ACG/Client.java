@@ -15,6 +15,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Scanner;
 
 /*
@@ -25,7 +26,7 @@ public class Client {
     private ObjectInputStream sInput;        // to read from the socket
     private ObjectOutputStream sOutput;        // to write on the socket
     private SSLSocket sslSocket;
-    static SecretKey key;
+    private static SecretKey aesKey;
     static Cipher cipherUtil;
 
     // if I use a GUI or not
@@ -96,7 +97,6 @@ public class Client {
                 sslSocket.startHandshake();
                 sOutput.writeObject("Trusted ACG.Server");
 
-
                 //Grab the server public key
                 PublicKey serverPub = serverCert.getPublicKey();
                 Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
@@ -104,11 +104,10 @@ public class Client {
 
                 KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
                 keyGenerator.init(128);
-                key = keyGenerator.generateKey();
-                System.out.println(key);
+                aesKey = keyGenerator.generateKey();
                 cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
 
-                byte[] encryptedSkey = cipher.doFinal(key.getEncoded());
+                byte[] encryptedSkey = cipher.doFinal(aesKey.getEncoded());
                 sOutput.writeObject(encryptedSkey);
 
                 if (cg == null) {
@@ -116,13 +115,13 @@ public class Client {
                     System.out.println("SSL Session: ");
                     System.out.println("\t" + sslSession.getCipherSuite());
 
-
                     String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
                     display(msg);
                     Scanner in = new Scanner(System.in);
                     System.out.println("\n************ Start of Program ************");
                     System.out.println("Home Page:\n1. Register\n2. Login\nChoose 1 option: ");
                     option = in.nextLine();
+
                     //write option to Server
                     sOutput.writeObject(option);
                     if (option.equals("1") || option.equals("r") || option.equals("R") || option.equals("Register") || option.equals("register")) {
@@ -186,7 +185,7 @@ public class Client {
 
             } else {
                 System.out.println("SSL Certificate verification fail");
-                sslSocket.close();
+                disconnect();
             }
         }
         // if it failed not much I can so
@@ -201,6 +200,7 @@ public class Client {
         // success we inform the caller that it worked
         return true;
     }
+
 
 	/*
      * To send a message to the console or the GUI
@@ -223,6 +223,21 @@ public class Client {
         } catch (IOException e) {
             display("Exception writing to server: " + e);
         }
+    }
+
+    public static String encryption(String unencryptedString,Cipher cipher) {
+        byte[] cipherText = null;
+        String encryptedString = null;
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            byte[] plainText = unencryptedString.getBytes("utf-8");
+            cipherText = cipher.doFinal(plainText);
+            encryptedString = new String(Base64.getEncoder().encode(cipherText));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return encryptedString;
     }
 
     /*
@@ -325,8 +340,7 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {                // default to ordinary message
-                CryptoUtils cryptoUtils = new CryptoUtils();
-                String encryptedMsg = cryptoUtils.encrypt(msg, key, cipherUtil);
+                String encryptedMsg = encryption(msg, cipherUtil);
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, encryptedMsg));
             }
         }
@@ -343,20 +357,15 @@ public class Client {
         public void run() {
             while (true) {
                 try {
-                    String msg = (String) sInput.readObject();
-                    System.out.println(msg);
-
-                    //String cipherText = msg.split(":")[3];
-                    //System.out.println(cipherText);
-                    String plainText = CryptoUtils.decrypt(msg, key, cipherUtil);
-                    System.out.println(plainText);
-
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
-                        System.out.println(plainText);
+                        String msg = (String) sInput.readObject();
+                        String plainText = CryptoUtils.decrypt(msg, aesKey, cipherUtil);
                         System.out.print("> ");
                     } else {
-                        cg.append(msg);
+                        String msg = (String) sInput.readObject();
+                        String plainText = CryptoUtils.decrypt(msg, aesKey, cipherUtil);
+                        cg.append(plainText);
                     }
                 } catch (IOException e) {
                     display("ACG.Server has close the connection: " + e);

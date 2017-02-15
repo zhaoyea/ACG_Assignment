@@ -203,7 +203,7 @@ public class Server {
         String date;
         String msg;
         byte[] decryptedKey;
-        SecretKey key;
+        SecretKey clientKey;
         Cipher cipherUtil;
         String message;
 
@@ -234,13 +234,9 @@ public class Server {
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
 
                         decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
-                        key = new SecretKeySpec(decryptedKey, "AES");
-                        /*
-                        byte [] encryptedUserName = (byte[]) sInput.readObject();
-                        byte [] encryptedPwd = (byte[]) sInput.readObject();
-                        System.out.println(asHex(encryptedUserName));
-                        System.out.println(asHex(encryptedPwd));
-                        */
+                        clientKey = new SecretKeySpec(decryptedKey, "AES");
+                        System.out.println(clientKey + " THIS IS MY KEY");
+
                         String option = (String) sInput.readObject();
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
@@ -256,47 +252,41 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
-                            //UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
-                            if (Boolean.TRUE.equals(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString))) {
-                                byte[] salt = HashUtils.getSalt();
-                                String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
-                                Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
-                                Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
 
-                                System.out.println("*************************************");
-                                System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
-                                System.out.println("*************************************");
+                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
+                            byte[] salt = HashUtils.getSalt();
+                            String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
+                            Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
+                            Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
 
-                            } else {
-                                remove(id);
-                                close();
-                            }
+                            System.out.println("*************************************");
+                            System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
+                            System.out.println("*************************************");
 
                         } else if (option.equals("2")) {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
+                            System.out.println(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString));
                             //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
                             if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
+                                System.out.println("this is wrong");
                                 remove(id);
                                 close();
-                            }
+                            } else
+                                System.out.println("this is correct");
                         } else {
-                            System.out.println("*************************************");
-                            System.out.println("Error: Unable to compute the option");
+                            System.out.println("Failed: ACG.Client never send Hello text");
                             sslsocket.close();
                         }
                     } else {
                         System.out.println("Failed: ACG.Client never send Hello text");
                         sslsocket.close();
                     }
-                } else {
-                    System.out.println("Failed: ACG.Client never send Hello text");
-                    sslsocket.close();
+                    // read the username
+                    username = (String) sInput.readObject();
+                    display(username + " just connected.");
                 }
-                // read the username
-                username = (String) sInput.readObject();
-                display(username + " just connected.");
             } catch (IOException e) {
                 display("Exception creating new Input/output Streams: " + e);
                 return;
@@ -324,10 +314,10 @@ public class Server {
                 }
                 // the messaage part of the ACG.ChatMessage
                 message = cm.getMessage();
+                System.out.println(message);
 
                 // Switch on the type of message receive
                 switch (cm.getType()) {
-
                     case ChatMessage.MESSAGE:
                         try {
                             cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -336,16 +326,14 @@ public class Server {
                         } catch (NoSuchPaddingException e) {
                             e.printStackTrace();
                         }
-                        String plainText = CryptoUtils.decrypt(message, key, cipherUtil);
+                        String plainText = CryptoUtils.decrypt(message, clientKey, cipherUtil);
+                        System.out.println(plainText);
                         String reEncrypt = null;
                         for (int i = 0; i < al.size(); ++i) {
                             ClientThread ck = al.get(i);
-                            reEncrypt = CryptoUtils.encrypt(plainText, ck.key, cipherUtil);
+                            reEncrypt = CryptoUtils.encrypt(plainText, ck.clientKey, cipherUtil);
                             ck.writeMsg(reEncrypt);
-                            //broadcast(ck.username, reEncrypt);
-
                         }
-
                         break;
                     case ChatMessage.LOGOUT:
                         display(username + " disconnected with a LOGOUT message.");
