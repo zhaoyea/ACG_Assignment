@@ -10,7 +10,7 @@ public class UserAuthentication {
 
     private static final String USERS_FILE_NAME = "src/Users/users.txt";
 
-    public static int VerfiyUser(String PlainUsername, String PlainPwd) throws Exception {
+    public static boolean VerfiyUser(String PlainUsername, String PlainPwd) throws Exception {
         //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line;
@@ -18,7 +18,7 @@ public class UserAuthentication {
 
         if (reader.readLine() == null) {
             System.out.println("Error: No such User");
-            System.exit(0);
+            return false;
         }
 
         while ((line = reader.readLine()) != null) {
@@ -43,13 +43,13 @@ public class UserAuthentication {
                     } else {
                         System.out.println("Login Success!");
                         System.out.println("Hello " + dbUsername);
-                        return 1;
+                        return true;
                     }
                 }
             }
-            System.exit(0);
+            return false;
         }
-        return 0;
+        return false;
     }
 
     public static boolean RegisterUserVerfiy(String Username, String Password) throws Exception {
@@ -95,7 +95,7 @@ public class UserAuthentication {
                     }
                 }
             }
-            System.exit(0);
+            return false;
         }
         return false;
     }

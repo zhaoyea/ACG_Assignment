@@ -41,6 +41,9 @@ public class Client {
      *  port: the port number
      *  username: the username
      */
+    public Client() {
+
+    }
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
         this(server, port, username, null, null);
@@ -228,7 +231,7 @@ public class Client {
      * When something goes wrong
      * Close the Input/Output streams and disconnect not much to do in the catch clause
      */
-    private void disconnect() {
+    public void disconnect() {
         try {
             if (sInput != null) sInput.close();
         } catch (Exception e) {

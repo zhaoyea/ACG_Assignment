@@ -212,6 +212,7 @@ public class Server {
             // a unique id
             id = ++uniqueId;
             this.sslsocket = sslsocket;
+            Client client = new Client();
             /* Creating both Data Stream */
             System.out.println("Thread trying to create Object Input/Output Streams");
             try {
@@ -256,7 +257,10 @@ public class Server {
                             /////////////////////
                             // Register a User //
                             /////////////////////
-                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
+                            //UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
+                            if (UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
+                                client.disconnect();
+                            }
 
                             byte[] salt = HashUtils.getSalt();
                             String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
@@ -271,8 +275,10 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-                            System.out.println("THIS IS OPTION 2");
-                            UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
+                            //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
+                            if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
+                                client.disconnect();
+                            }
                         } else {
                             System.out.println("*************************************");
                             System.out.println("Error: Unable to compute the option");
