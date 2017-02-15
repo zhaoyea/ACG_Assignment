@@ -345,9 +345,9 @@ public class Client {
                     String msg = (String) sInput.readObject();
                     System.out.println(msg);
 
-                    String cipherText = msg.split(":")[3];
-                    System.out.println(cipherText);
-                    String plainText = CryptoUtils.decrypt(cipherText, key, cipherUtil);
+                    //String cipherText = msg.split(":")[3];
+                    //System.out.println(cipherText);
+                    String plainText = CryptoUtils.decrypt(msg, key, cipherUtil);
                     System.out.println(plainText);
 
                     // if console mode print the message and add back the prompt

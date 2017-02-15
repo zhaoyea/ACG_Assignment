@@ -149,10 +149,10 @@ public class Server {
     /*
      *  to broadcast a message to all Clients
      */
-    private synchronized void broadcast(String username,String message) {
+    private synchronized void broadcast(String username, String message) {
         // add HH:mm:ss and \n to the message
         String time = sdf.format(new Date());
-        String messageLf = time + " " + username  + ": " +message+ "\n";
+        String messageLf = time + " " + username + ": " + message + "\n";
         // display message on console or GUI
         if (sg == null)
             System.out.print(messageLf);
@@ -207,7 +207,7 @@ public class Server {
         Cipher cipherUtil;
         String message;
 
-            // Constructor
+        // Constructor
         ClientThread(SSLSocket sslsocket) throws Exception {
             // a unique id
             id = ++uniqueId;
@@ -234,7 +234,7 @@ public class Server {
                         cipher.init(Cipher.DECRYPT_MODE, serverPrivateKey);
 
                         decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
-                        key = new SecretKeySpec(decryptedKey,"AES");
+                        key = new SecretKeySpec(decryptedKey, "AES");
                         /*
                         byte [] encryptedUserName = (byte[]) sInput.readObject();
                         byte [] encryptedPwd = (byte[]) sInput.readObject();
@@ -271,8 +271,8 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
+                            System.out.println("THIS IS OPTION 2");
                             UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
-
                         } else {
                             System.out.println("*************************************");
                             System.out.println("Error: Unable to compute the option");
@@ -328,13 +328,14 @@ public class Server {
                         } catch (NoSuchPaddingException e) {
                             e.printStackTrace();
                         }
-                        String plainText = CryptoUtils.decrypt(message ,key, cipherUtil);
+                        String plainText = CryptoUtils.decrypt(message, key, cipherUtil);
                         String reEncrypt = null;
-                        for(int i = 0;i<al.size();++i){
+                        for (int i = 0; i < al.size(); ++i) {
                             ClientThread ck = al.get(i);
-                            System.out.println(ck.key+"THISISKEY");
-                            reEncrypt = CryptoUtils.encrypt(plainText ,ck.key, cipherUtil);
-                            broadcast(username, reEncrypt);
+                            reEncrypt = CryptoUtils.encrypt(plainText, ck.key, cipherUtil);
+                            ck.writeMsg(reEncrypt);
+                            //broadcast(ck.username, reEncrypt);
+
                         }
 
                         break;
@@ -385,6 +386,16 @@ public class Server {
                 close();
                 return false;
             }
+            // add HH:mm:ss and \n to the message
+            for (int i = 0; i < al.size(); ++i) {
+                ClientThread ck = al.get(i);
+                String time = sdf.format(new Date());
+                if (username.equals(ck.username)) {
+                    String messageLf = time + " " + ck.username + ": " + msg + "\n";
+                    System.out.print(messageLf);
+                }
+            }
+
             // write the message to the stream
             try {
                 sOutput.writeObject(msg);
