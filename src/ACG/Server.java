@@ -204,6 +204,7 @@ public class Server {
         SecretKey clientKey;
         Cipher cipherUtil;
         String message;
+        String enter;
 
         // Constructor
         ClientThread(SSLSocket sslsocket) throws Exception {
@@ -251,7 +252,6 @@ public class Server {
                             // Register a User //
                             /////////////////////
 
-                            UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
                             if(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString)==true) {
                                 byte[] salt = HashUtils.getSalt();
                                 String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
@@ -261,7 +261,11 @@ public class Server {
                                 System.out.println("*************************************");
                                 System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
                                 System.out.println("*************************************");
+                                enter = "pass";
+                                sOutput.writeObject(enter);
                             }else{
+                                enter = "failed register";
+                                sOutput.writeObject(enter);
                                 remove(id);
                                 close();
                             }
@@ -270,11 +274,15 @@ public class Server {
                             ///////////////////////////
                             // Authenticating a User //
                             ///////////////////////////
-                            System.out.println(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString));
                             //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString); ---------------
                             if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
+                                enter = "failed login";
+                                sOutput.writeObject(enter);
                                 remove(id);
                                 close();
+                            } else {
+                                enter = "pass";
+                                sOutput.writeObject(enter);
                             }
                         } else {
                             System.out.println("Failed: ACG.Client never send Hello text");

@@ -66,7 +66,8 @@ public class UserAuthentication {
                 System.out.println(errMsg);
                 System.out.println("*************************************");
                 return false;
-            }
+            } else if(!(Username == null || Username.isEmpty() || Password == null || Password.isEmpty()))
+                return true;
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(USERS_FILE_NAME))) {

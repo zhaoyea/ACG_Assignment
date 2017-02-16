@@ -173,6 +173,14 @@ public class Client {
                 sOutput.writeObject(encryptedPwd);
 
 
+                String enter = (String) sInput.readObject();
+                if(enter.equals("failed register")){
+                    System.out.println("Username existed or Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length");
+                } else if(enter.equals("failed login")){
+                    System.out.println("Wrong Username or Password/ Empty field");
+                }
+
+
                 // Send our username to the server this is the only message that we
                 // will send as a String. All other messages will be ACG.ChatMessage objects
                 try {
