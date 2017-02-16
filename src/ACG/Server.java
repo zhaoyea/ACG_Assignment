@@ -149,22 +149,20 @@ public class Server {
     /*
      *  to broadcast a message to all Clients
      */
-    private synchronized void broadcast(String username, String message) {
-        // add HH:mm:ss and \n to the message
-        String time = sdf.format(new Date());
-        String messageLf = time + " " + username + ": " + message + "\n";
+    private synchronized void broadcast(String message) {
+
         // display message on console or GUI
         if (sg == null)
-            System.out.print(messageLf);
+            System.out.print(message);
         else
-            sg.appendRoom(messageLf);     // append in the room window
+            sg.appendRoom(message);     // append in the room window
 
         // we loop in reverse order in case we would have to remove a ACG.Client
         // because it has disconnected
         for (int i = al.size(); --i >= 0; ) {
             ClientThread ct = al.get(i);
             // try to write to the ACG.Client if it fails remove it from the list
-            if (!ct.writeMsg(messageLf)) {
+            if (!ct.writeMsg(message)) {
                 al.remove(i);
                 display("Disconnected ACG.Client " + ct.username + " removed from list.");
             }
@@ -254,14 +252,19 @@ public class Server {
                             /////////////////////
 
                             UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString);
-                            byte[] salt = HashUtils.getSalt();
-                            String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
-                            Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
-                            Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
+                            if(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString)==true) {
+                                byte[] salt = HashUtils.getSalt();
+                                String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
+                                Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
+                                Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
 
-                            System.out.println("*************************************");
-                            System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
-                            System.out.println("*************************************");
+                                System.out.println("*************************************");
+                                System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
+                                System.out.println("*************************************");
+                            }else{
+                                remove(id);
+                                close();
+                            }
 
                         } else if (option.equals("2")) {
                             ///////////////////////////
@@ -270,11 +273,9 @@ public class Server {
                             System.out.println(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString));
                             //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
                             if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
-                                System.out.println("this is wrong");
                                 remove(id);
                                 close();
-                            } else
-                                System.out.println("this is correct");
+                            }
                         } else {
                             System.out.println("Failed: ACG.Client never send Hello text");
                             sslsocket.close();

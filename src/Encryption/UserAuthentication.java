@@ -1,5 +1,6 @@
 package Encryption;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.LineNumberReader;
 
@@ -22,35 +23,32 @@ public class UserAuthentication {
         }
 
 
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-            for (int i = 0; i <= reader.getLineNumber(); i++) {
-                String dbUsername = line.split(":")[0];
-                String dbSalt = line.split(":")[2];
-                String dbHashedPwd = line.split(":")[3];
-                System.out.println("DBUsername: " + dbUsername + "\nDBSalt: " + dbSalt + "\nDBHashPwd: " + dbHashedPwd);
-                byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
+        try (BufferedReader br = new BufferedReader(new FileReader(USERS_FILE_NAME))) {
+            while ((line = br.readLine()) != null) {
+                    String dbUsername = line.split(":")[0];
+                    String dbSalt = line.split(":")[2];
+                    String dbHashedPwd = line.split(":")[3];
+                    byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
 
-                String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
-                System.out.println("UserInputPwd: " + HashedPwd);
+                    String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
+                    System.out.println("UserInputPwd: " + HashedPwd);
 
-                if (PlainUsername == null || PlainUsername.isEmpty() || PlainPwd == null || PlainPwd.isEmpty()) {
-                    errMsg = "Error: Empty Field!\nPlease try again!";
-                    System.out.println(errMsg);
-                    System.out.println("*************************************");
-                    break;
-                } else {
-                    if (!PlainUsername.equals(dbUsername) && !HashedPwd.equals(dbHashedPwd)) {
-                        errMsg = "Error: Username or Password wrong!\nPlease try again!";
+                    if (PlainUsername == null || PlainUsername.isEmpty() || PlainPwd == null || PlainPwd.isEmpty()) {
+                        errMsg = "Error: Empty Field!\nPlease try again!";
                         System.out.println(errMsg);
                         System.out.println("*************************************");
-                        break;
+                        return false;
                     } else {
-                        System.out.println("Login Success!");
-                        System.out.println("Hello " + dbUsername);
-                        return true;
+                        if (!PlainUsername.equals(dbUsername) && !HashedPwd.equals(dbHashedPwd)) {
+                            errMsg = "Error: Username or Password wrong!\nPlease try again!";
+                            System.out.println(errMsg);
+                            System.out.println("*************************************");
+                        } else if(PlainUsername.equals(dbUsername) && HashedPwd.equals(dbHashedPwd)){
+                            System.out.println("Login Success!");
+                            System.out.println("Hello " + dbUsername);
+                            return true;
+                        }
                     }
-                }
             }
         }
         return false;
@@ -71,35 +69,24 @@ public class UserAuthentication {
             }
         }
 
-        while ((line = reader.readLine()) != null) {
-            System.out.println("INSIDE WHILE LOOP");
-            for (int i = reader.getLineNumber(); i <= reader.getLineNumber(); i++) {
-                System.out.println("INSIDE FOR LOOP");
+        try (BufferedReader br = new BufferedReader(new FileReader(USERS_FILE_NAME))) {
+
+            while ((line = br.readLine()) != null) {
                 String dbUsername = line.split(":")[0];
-                System.out.println(dbUsername);
 
                 if (Username == null || Username.isEmpty() || Password == null || Password.isEmpty()) {
                     errMsg = "Error: Username or Password wrong!\nPlease try again!";
                     System.out.println(errMsg);
                     System.out.println("*************************************");
                     return false;
-                }
-                else if (dbUsername.equals(Username)) {
-                    errMsg = "Error: User already exist!";
-                    System.out.println(errMsg);
-                    System.out.println("*************************************");
-                    return false;
-                }
-                else if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
-                    errMsg = "Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length";
-                    System.out.println(errMsg);
-                    System.out.println("*************************************");
-                    return false;
                 } else {
-                    return true;
+
+                    if(!dbUsername.equals(Username)&& Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")){
+                        return true;
+                    } else
+                        return false;
                 }
             }
-            return false;
         }
         return false;
     }
