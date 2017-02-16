@@ -15,21 +15,20 @@ import static ACG.Client.encryption;
  * Created by tanzh on 13/02/2017.
  */
 public class LoginGUI {
-    private final JFrame init;
+    //private final JFrame init;
     private JTextField IPField;
     private JTextField Username;
     private JPasswordField Password;
     private JButton register;
     private JPanel loginPanel;
-    private JButton connectButton;
     private JTextField PortField;
     private JTextField message;
     private JButton sendButton;
-    private JList userList;
     private JScrollBar scrollBar1;
     private JButton logout;
     private JButton whoIsIn;
     private JTextArea ta;
+    public JButton login;
     private Client client;
     private boolean connected;
     private SecretKey aesKey;
@@ -41,23 +40,19 @@ public class LoginGUI {
     int serverPort = Integer.parseInt(PortField.getText());
 
 
-
-
-    public LoginGUI(JFrame init) {
-        this.init = init;
-        connectButton.addActionListener(new ActionListener() {
+    public LoginGUI() {
+        //this.init = init;
+        login.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                connectActionPerformed(e);
+                loginActionPerformed(e);
             }
         });
 
         register.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                init.setContentPane(new RegisterGUI().registerPanel);
-                init.pack();
-                init.setVisible(true);
+                registerActionPerformed(e);
             }
         });
         sendButton.addActionListener(new ActionListener() {
@@ -81,23 +76,50 @@ public class LoginGUI {
         });
     }
 
-    private void connectActionPerformed(ActionEvent e) {
+    private void loginActionPerformed(ActionEvent e) {
         if (!serverAddr.isEmpty() && !(PortField.getText().isEmpty()) && !Username.getText().isEmpty() && !Password.getText().isEmpty()) {
             username = Username.getText();
             password = Password.getText();
-            client = new Client(serverAddr, serverPort, username, password, this);
+            client = new Client(serverAddr, serverPort, username, password, this, true);
 
             // test if we can start the ACG.Client
             if (!client.start())
                 return;
 
-            connected = true;
             IPField.setEnabled(false);
             PortField.setEnabled(false);
-            connectButton.setEnabled(false);
+            login.setEnabled(false);
             Username.setEnabled(false);
             Password.setEnabled(false);
             register.setEnabled(false);
+            ta.setEnabled(true);
+            whoIsIn.setEnabled(true);
+            logout.setEnabled(true);
+            message.setEnabled(true);
+            sendButton.setEnabled(true);
+
+        } else {
+            return;
+        }
+    }
+
+    public void registerActionPerformed(ActionEvent e) {
+        if (!serverAddr.isEmpty() && !(PortField.getText().isEmpty()) && !Username.getText().isEmpty() && !Password.getText().isEmpty()) {
+            username = Username.getText();
+            password = Password.getText();
+            client = new Client(serverAddr, serverPort, username, password, this, false);
+            // test if we can start the ACG.Client
+            if (!client.start())
+                return;
+
+            IPField.setEnabled(false);
+            PortField.setEnabled(false);
+            login.setEnabled(false);
+            Username.setEnabled(false);
+            Password.setEnabled(false);
+            register.setEnabled(false);
+            ta.setEnabled(true);
+            whoIsIn.setEnabled(true);
             logout.setEnabled(true);
             message.setEnabled(true);
             sendButton.setEnabled(true);
@@ -105,6 +127,7 @@ public class LoginGUI {
             return;
         }
     }
+
 
     public void sendActionPerformed(ActionEvent e) {
         if (!message.getText().isEmpty()) {
@@ -148,7 +171,7 @@ public class LoginGUI {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("LoginGUI");
-        frame.setContentPane(new LoginGUI(frame).loginPanel);
+        frame.setContentPane(new LoginGUI().loginPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);

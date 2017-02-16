@@ -35,6 +35,7 @@ public class Client {
     // the server, the port and the username
     private String server, username, password, option;
     private int port;
+    private boolean login;
 
     /*
      *  Constructor called by console mode
@@ -45,18 +46,19 @@ public class Client {
 
     Client(String server, int port, String username) {
         // which calls the common constructor with the GUI set to null
-        this(server, port, username, null, null);
+        this(server, port, username, null, null, false);
     }
 
     /*
      * Constructor call when used from a GUI
      * in console mode the ClienGUI parameter is null
      */
-    Client(String server, int port, String username, String password, LoginGUI cg) {
+    Client(String server, int port, String username, String password, LoginGUI cg, boolean login) {
         this.server = server;
         this.port = port;
         this.username = username;
         this.password = password;
+        this.login = login;
         // save if we are in GUI mode or not
         this.cg = cg;
     }
@@ -147,7 +149,10 @@ public class Client {
                 } else {
                     String msg = "Connection accepted " + sslSocket.getInetAddress() + ":" + sslSocket.getPort();
                     cg.append(msg);
-                    sOutput.writeObject("2");
+                    if (login)
+                        sOutput.writeObject("2");
+                    else
+                        sOutput.writeObject("1");
                 }
                 //After handshake starts, ask User to login
                 //http://www.programmingsimplified.com/java/source-code/java-program-take-input-from-user
@@ -380,6 +385,7 @@ public class Client {
                         String timestamp = msg.split(" ")[0];
                         String name = msg.split(" ")[1];
                         String cipherText = msg.split(":")[3];
+
                         String plainText = CryptoUtils.decrypt(cipherText, aesKey, cipherUtil);
                         cg.append(timestamp+" "+name+" "+plainText);
                     }
