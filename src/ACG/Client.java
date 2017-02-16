@@ -30,7 +30,7 @@ public class Client {
     static Cipher cipherUtil;
 
     // if I use a GUI or not
-    private LoginGUI cg;
+    private ClientGUI cg;
 
     // the server, the port and the username
     private String server, username, password, option;
@@ -53,7 +53,7 @@ public class Client {
      * Constructor call when used from a GUI
      * in console mode the ClienGUI parameter is null
      */
-    Client(String server, int port, String username, String password, LoginGUI cg, boolean login) {
+    Client(String server, int port, String username, String password, ClientGUI cg, boolean login) {
         this.server = server;
         this.port = port;
         this.username = username;
