@@ -163,16 +163,6 @@ public class Client {
                 byte[] encryptedUserName = cipher.doFinal(PlainUserName);
                 byte[] encryptedPwd = cipher.doFinal(PlainPwd);
 
-
-                /*
-                // Print the encryptedUserName
-                System.out.println("\n\nUsername: ");
-                System.out.println(asHex(encryptedUserName));
-                // Print the encryptedUserName
-                System.out.println("\n\nPassword: ");
-                System.out.println(asHex(encryptedPwd));
-                */
-
                 //Send the encrypted credentials to the server
                 sOutput.writeObject(encryptedUserName);
                 sOutput.writeObject(encryptedPwd);

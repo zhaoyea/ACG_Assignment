@@ -51,22 +51,4 @@ public class CryptoUtils {
         }
         return decryptedText;
     }
-
-
-
-    public static String asHex(byte buf[]) {
-
-        //Obtain a StringBuffer object
-        StringBuffer strbuf = new StringBuffer(buf.length * 2);
-        int i;
-
-        for (i = 0; i < buf.length; i++) {
-            if (((int) buf[i] & 0xff) < 0x10)
-                strbuf.append("0");
-            strbuf.append(Long.toString((int) buf[i] & 0xff, 16));
-        }
-        // Return result string in Hexadecimal format
-        return strbuf.toString();
-    }
-
 }
