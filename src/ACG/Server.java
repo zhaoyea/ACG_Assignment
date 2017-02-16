@@ -351,11 +351,24 @@ public class Server {
                         keepGoing = false;
                         break;
                     case ChatMessage.WHOISIN:
-                        writeMsg("List of the users connected at " + sdf.format(new Date()) + "\n");
+                        try {
+                            cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        }
+                        plainText = "List of users connected,";
+                        reEncrypt = CryptoUtils.encrypt(plainText, clientKey, cipherUtil);
+                        String whois = sdf.format(new Date())+" Server: "+reEncrypt;
+                        writeMsg(whois);
                         // scan al the users connected
                         for (int i = 0; i < al.size(); ++i) {
                             ClientThread ct = al.get(i);
-                            writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
+                            plainText = "User "+ct.username+" since "+ct.date;
+                            reEncrypt = CryptoUtils.encrypt(plainText, clientKey, cipherUtil);
+                            whois = sdf.format(new Date())+" Server: "+reEncrypt;
+                            writeMsg(whois);
                         }
                         break;
                 }
@@ -398,7 +411,7 @@ public class Server {
                 ClientThread ck = al.get(i);
                 String time = sdf.format(new Date());
                 if (username.equals(ck.username)) {
-                    String messageLf = "Message for " + ck.username + ": " + msg + "\n";
+                    String messageLf = msg + "\n";
                     System.out.print(messageLf);
                 }
             }
