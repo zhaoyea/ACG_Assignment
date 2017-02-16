@@ -202,7 +202,7 @@ public class Server {
         String msg;
         byte[] decryptedKey;
         SecretKey clientKey;
-        Cipher cipherUtil;
+        Cipher cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
         String message;
         String enter;
 
@@ -328,13 +328,6 @@ public class Server {
                 // Switch on the type of message receive
                 switch (cm.getType()) {
                     case ChatMessage.MESSAGE:
-                        try {
-                            cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        }
                         String plainText = CryptoUtils.decrypt(message, clientKey, cipherUtil);
                         System.out.println(plainText);
                         String reEncrypt = null;
@@ -351,13 +344,6 @@ public class Server {
                         keepGoing = false;
                         break;
                     case ChatMessage.WHOISIN:
-                        try {
-                            cipherUtil = Cipher.getInstance("AES/ECB/PKCS5Padding");
-                        } catch (NoSuchAlgorithmException e) {
-                            e.printStackTrace();
-                        } catch (NoSuchPaddingException e) {
-                            e.printStackTrace();
-                        }
                         plainText = "List of users connected,";
                         reEncrypt = CryptoUtils.encrypt(plainText, clientKey, cipherUtil);
                         String whois = sdf.format(new Date())+" Server: "+reEncrypt;
