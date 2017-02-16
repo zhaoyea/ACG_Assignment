@@ -360,12 +360,20 @@ public class Client {
                     // if console mode print the message and add back the prompt
                     if (cg == null) {
                         String msg = (String) sInput.readObject();
-                        String plainText = CryptoUtils.decrypt(msg, aesKey, cipherUtil);
-                        System.out.print("> ");
+                        String timestamp = msg.split(" ")[0];
+                        String name = msg.split(" ")[1];
+                        String cipherText = msg.split(":")[3];
+                        String plainText = CryptoUtils.decrypt(cipherText, aesKey, cipherUtil);
+
+                        System.out.print(timestamp+" "+name+" "+plainText+"\n> ");
+
                     } else {
                         String msg = (String) sInput.readObject();
-                        String plainText = CryptoUtils.decrypt(msg, aesKey, cipherUtil);
-                        cg.append(plainText);
+                        String timestamp = msg.split(" ")[0];
+                        String name = msg.split(" ")[1];
+                        String cipherText = msg.split(":")[3];
+                        String plainText = CryptoUtils.decrypt(cipherText, aesKey, cipherUtil);
+                        cg.append(timestamp+" "+name+" "+plainText);
                     }
                 } catch (IOException e) {
                     display("ACG.Server has close the connection: " + e);

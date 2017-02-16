@@ -332,7 +332,9 @@ public class Server {
                         for (int i = 0; i < al.size(); ++i) {
                             ClientThread ck = al.get(i);
                             reEncrypt = CryptoUtils.encrypt(plainText, ck.clientKey, cipherUtil);
-                            ck.writeMsg(reEncrypt);
+                            String time = sdf.format(new Date());
+                            String messageLf = time + " " + username + ": " + reEncrypt + "\n";
+                            ck.writeMsg(messageLf);
                         }
                         break;
                     case ChatMessage.LOGOUT:
@@ -387,7 +389,7 @@ public class Server {
                 ClientThread ck = al.get(i);
                 String time = sdf.format(new Date());
                 if (username.equals(ck.username)) {
-                    String messageLf = time + " " + ck.username + ": " + msg + "\n";
+                    String messageLf = "Message for " + ck.username + ": " + msg + "\n";
                     System.out.print(messageLf);
                 }
             }
