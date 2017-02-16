@@ -236,10 +236,12 @@ public class Server {
                         String option = (String) sInput.readObject();
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
                         byte[] decryptedPwd = cipher.doFinal((byte[]) sInput.readObject());
+                        /*
                         System.out.println("*************************************");
                         System.out.println("Decrypted Username:" + new String(decryptedUserName));
                         System.out.println("Decrypted Password:" + new String(decryptedPwd));
                         System.out.println("*************************************");
+                        */
 
                         String decryptedUsernameAsString = new String(decryptedUserName, "UTF-8");
                         String decryptedPasswordAsString = new String(decryptedPwd, "UTF-8");

@@ -2,12 +2,7 @@ package Encryption;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import java.security.spec.AlgorithmParameterSpec;
 import java.util.Base64;
-
-//import org.apache.commons.codec.binary.Base64;
-//import org.apache.commons.codec.binary.Base64;
-
 
 /**
  * Created by tanzh on 25/01/2017.
@@ -17,11 +12,6 @@ import java.util.Base64;
 public class CryptoUtils {
 
     private static final String UNICODE_FORMAT = "UTF-8";
-    static SecretKey key;
-    static Cipher cipher;
-    static AlgorithmParameterSpec paramSpec;
-
-
 
     public static String encrypt(String unencryptedString, SecretKey key, Cipher cipher) {
         byte[] cipherText = null;

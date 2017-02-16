@@ -15,7 +15,6 @@ public class UserAuthentication {
         //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line, errMsg;
-        int counter = 0;
 
         if (reader.readLine() == null) {
             System.out.println("Error: No such User");
@@ -31,7 +30,6 @@ public class UserAuthentication {
                     byte[] salt = HashUtils.hexStringToByteArray(dbSalt);
 
                     String HashedPwd = HashUtils.asHex(HashUtils.hashPassword(PlainPwd.toCharArray(), salt, 1000, 512));
-                    System.out.println("UserInputPwd: " + HashedPwd);
 
                     if (PlainUsername == null || PlainUsername.isEmpty() || PlainPwd == null || PlainPwd.isEmpty()) {
                         errMsg = "Error: Empty Field!\nPlease try again!";
