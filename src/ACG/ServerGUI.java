@@ -52,7 +52,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 
 		// need to be informed when the user click the close button on the frame
 		addWindowListener(this);
-		setSize(400, 600);
+		setSize(500, 600);
 		setVisible(true);
 	}
 
@@ -64,8 +64,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	}
 	void appendEvent(String str) {
 		event.append(str);
-		event.setCaretPosition(chat.getText().length() - 1);
-
+		event.setCaretPosition(event.getText().length() - 1);
 	}
 
 	// start or stop where clicked

@@ -175,7 +175,8 @@ public class Client {
                         System.out.println("Username existed or Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length");
                     } else {
                         JOptionPane.showMessageDialog(null,
-                                "Error:\n1. User Existed\n2. Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length",
+                                "Error:\n1. User Existed\n" +
+                                        "2. Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length",
                                 "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }
