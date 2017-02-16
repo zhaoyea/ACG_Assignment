@@ -271,7 +271,7 @@ public class Server {
                             // Authenticating a User //
                             ///////////////////////////
                             System.out.println(UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString));
-                            //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString);
+                            //UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString); ---------------
                             if (UserAuthentication.VerfiyUser(decryptedUsernameAsString, decryptedPasswordAsString) == false) {
                                 remove(id);
                                 close();
