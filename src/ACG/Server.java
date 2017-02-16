@@ -12,6 +12,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -219,7 +220,6 @@ public class Server {
                 String clientMsg = (String) sInput.readObject();
                 X509Certificate serverCert = SSLUtils.getServerCertificate();
                 System.out.println("*************************************");
-                System.out.println(clientMsg);
                 if (clientMsg.equals("Hello ACG.Server")) {
                     sOutput.writeObject("Hello ACG.Client\nThis is my Certificate: ");
                     sOutput.writeObject(serverCert);
@@ -232,7 +232,6 @@ public class Server {
 
                         decryptedKey = cipher.doFinal((byte[]) sInput.readObject());
                         clientKey = new SecretKeySpec(decryptedKey, "AES");
-                        System.out.println(clientKey + " THIS IS MY KEY");
 
                         String option = (String) sInput.readObject();
                         byte[] decryptedUserName = cipher.doFinal((byte[]) sInput.readObject());
@@ -250,18 +249,24 @@ public class Server {
                             // Register a User //
                             /////////////////////
 
-                            if(UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString)==true) {
+                            if (UserAuthentication.RegisterUserVerfiy(decryptedUsernameAsString, decryptedPasswordAsString) == true) {
                                 byte[] salt = HashUtils.getSalt();
                                 String hashPwd = HashUtils.asHex(HashUtils.hashPassword(decryptedPasswordAsString.toCharArray(), salt, 1000, 512));
                                 Files.write(Paths.get(USERS_FILE_NAME), "".getBytes(), StandardOpenOption.APPEND);
                                 Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
-
-                                System.out.println("*************************************");
-                                System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
-                                System.out.println("*************************************");
+                                if (sg == null) {
+                                    System.out.println("*************************************");
+                                    System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
+                                    System.out.println("*************************************");
+                                } else {
+                                    JOptionPane.showMessageDialog(null,
+                                            "Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME,
+                                            "Success",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                }
                                 enter = "pass";
                                 sOutput.writeObject(enter);
-                            }else{
+                            } else {
                                 enter = "failed register";
                                 sOutput.writeObject(enter);
                                 remove(id);
@@ -321,13 +326,11 @@ public class Server {
                 }
                 // the messaage part of the ACG.ChatMessage
                 message = cm.getMessage();
-                System.out.println(message);
 
                 // Switch on the type of message receive
                 switch (cm.getType()) {
                     case ChatMessage.MESSAGE:
                         String plainText = CryptoUtils.decrypt(message, clientKey, cipherUtil);
-                        System.out.println(plainText);
                         String reEncrypt = null;
                         for (int i = 0; i < al.size(); ++i) {
                             ClientThread ck = al.get(i);
@@ -344,14 +347,14 @@ public class Server {
                     case ChatMessage.WHOISIN:
                         plainText = "List of users connected,";
                         reEncrypt = CryptoUtils.encrypt(plainText, clientKey, cipherUtil);
-                        String whois = sdf.format(new Date())+" Server: "+reEncrypt;
+                        String whois = sdf.format(new Date()) + " Server: " + reEncrypt;
                         writeMsg(whois);
                         // scan al the users connected
                         for (int i = 0; i < al.size(); ++i) {
                             ClientThread ct = al.get(i);
-                            plainText = "User "+ct.username+" since "+ct.date;
+                            plainText = "User " + ct.username + " since " + ct.date;
                             reEncrypt = CryptoUtils.encrypt(plainText, clientKey, cipherUtil);
-                            whois = sdf.format(new Date())+" Server: "+reEncrypt;
+                            whois = sdf.format(new Date()) + " Server: " + reEncrypt;
                             writeMsg(whois);
                         }
                         break;
@@ -396,7 +399,8 @@ public class Server {
                 String time = sdf.format(new Date());
                 if (username.equals(ck.username)) {
                     String messageLf = msg + "\n";
-                    System.out.print(messageLf);
+                    if (sg == null) {System.out.print(messageLf);}
+                    else {sg.appendRoom(messageLf);}
                 }
             }
 

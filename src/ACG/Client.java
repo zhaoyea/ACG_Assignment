@@ -10,6 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -170,9 +171,23 @@ public class Client {
 
                 String enter = (String) sInput.readObject();
                 if(enter.equals("failed register")){
-                    System.out.println("Username existed or Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length");
+                    if (cg == null) {
+                        System.out.println("Username existed or Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length");
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "Error:\n1. User Existed\n2. Password must include at least:\n - One upper case letter\n - One lower case letter\n - One digit\n - And minium 8 in length",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
                 } else if(enter.equals("failed login")){
-                    System.out.println("Wrong Username or Password/ Empty field");
+                    if (cg == null) {
+                        System.out.println("Wrong Username or Password/ Empty field");
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "Error:\n1. Empty field\n2. Wrong Username or Password\n3. User does not exist",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
                 }
 
 
