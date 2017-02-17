@@ -46,7 +46,7 @@ public class SSLUtils {
             ////////////////////////////////////////////////////
             ///// USE THE KEYS TO INITILISE THE SSLCONTEXT /////
             ////////////////////////////////////////////////////
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
             sslContext.init(km, tm, SecureRandom.getInstance("SHA1PRNG"));
 
             return sslContext;
