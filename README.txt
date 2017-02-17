@@ -6,14 +6,17 @@ CONTENTS OF THIS FILE
 
 * Configuration
 
-To run the program, there are 2 options:
-
+-------------------------------------------------------------------------------------------------------------------------------
 /src contains the main codes
 /out contains the the compiled classes and jar
 /Client, /Client2, /Server, /Server2 contains the manifest required to run the jar files
 users.txt and mykeystore.jks is required if running the program from Intellij
-
-
+-------------------------------------------------------------------------------------------------------------------------------
+A user has been created beforehand:
+	Username: calvin
+	Password: 1wan$@sP
+-------------------------------------------------------------------------------------------------------------------------------
+To run the program:
 	1: Import project into Intellij to run
 		*Changing the location of user.txt and mykeystore.jks in the root folder reuires change of directory in code
 		*E.g private static final String USERS_FILE_NAME = "users.txt"; in UserAuthentication.java
@@ -30,7 +33,7 @@ users.txt and mykeystore.jks is required if running the program from Intellij
 
 	*The user.txt file used by the 2 methods are different
 
-
+-------------------------------------------------------------------------------------------------------------------------------
 
  * Enjoy :)
 

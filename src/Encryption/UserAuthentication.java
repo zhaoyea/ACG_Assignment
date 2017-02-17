@@ -55,6 +55,9 @@ public class UserAuthentication {
         return false;
     }
 
+    ////////////////////////////////
+    ///// Registration of user /////
+    ////////////////////////////////
     public static boolean RegisterUserVerfiy(String Username, String Password) throws Exception {
         //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));

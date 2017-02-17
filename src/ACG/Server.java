@@ -257,7 +257,7 @@ public class Server {
                                 Files.write(Paths.get(USERS_FILE_NAME), (decryptedUsernameAsString + "::" + asHex(salt) + ":" + hashPwd + "\n").getBytes(), StandardOpenOption.APPEND);
                                 if (sg == null) {
                                     System.out.println("*************************************");
-                                    System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
+                                    System.out.println("Users: " + decryptedUsernameAsString + " created.");
                                     System.out.println("*************************************");
                                 }
                                 enter = "pass";
