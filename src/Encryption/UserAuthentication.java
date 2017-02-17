@@ -11,6 +11,9 @@ public class UserAuthentication {
 
     private static final String USERS_FILE_NAME = "src/Users/users.txt";
 
+    //////////////////////////////////////////
+    ///// Verfiy the user from users.txt /////
+    //////////////////////////////////////////
     public static boolean VerfiyUser(String PlainUsername, String PlainPwd) throws Exception {
         //http://stackoverflow.com/questions/15332406/extracting-specific-text-from-a-file-in-java
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
@@ -72,6 +75,7 @@ public class UserAuthentication {
 
             while ((line = br.readLine()) != null) {
                 String dbUsername = line.split(":")[0];
+                System.out.println(dbUsername);
 
                 if (Username == null || Username.isEmpty() || Password == null || Password.isEmpty()) {
                     errMsg = "Error: Username or Password wrong!\nPlease try again!";
@@ -79,12 +83,16 @@ public class UserAuthentication {
                     System.out.println("*************************************");
                     return false;
                 } else {
-
-                    if(!dbUsername.equals(Username)&& Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")){
-                        return true;
-                    } else
+                    if (dbUsername.equals(Username)) {
                         return false;
+                    }
+
+                    if(!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")){
+                        return false;
+                    }
                 }
+
+
             }
         }
         return false;

@@ -16,12 +16,12 @@ public class SSLUtils {
     private static final String SERVER_ALIAS = "server_signed";
     private static final String CA_ALIAS = "ca";
     private static final String KEYSTORE_PWD = "12345678";
+
     //////////////////////////////////
     ///// CREATE THE SSL CONTEXT /////
     //////////////////////////////////
     public static SSLContext createSSLContext() {
         try {
-
             /////////////////////////////////////////
             ///// LOAD THE SERVER'S PRIVATE KEY /////
             /////////////////////////////////////////
@@ -72,6 +72,7 @@ public class SSLUtils {
 
     public static PrivateKey getPrivateKey() throws Exception {
         //https://stackoverflow.com/questions/3027273/how-to-store-and-load-keys-using-java-security-keystore-class
+        //Grab the privae key of the server
         FileInputStream input = new FileInputStream(KEYSTORE_LOCATION);
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(input, KEYSTORE_PWD.toCharArray());
@@ -79,6 +80,7 @@ public class SSLUtils {
                 new KeyStore.PasswordProtection(KEYSTORE_PWD.toCharArray()));
         PrivateKey privateKey = keyEnt.getPrivateKey();
 
+        //returnt the key
         return privateKey;
     }
 
@@ -86,7 +88,7 @@ public class SSLUtils {
     /// Grab the CA cert for verification ///
     /////////////////////////////////////////
     public static X509Certificate getCACertificate() throws Exception {
-        //Read from the keystore
+        //Read from the keystore and grab the CACERT
         FileInputStream input = new FileInputStream(KEYSTORE_LOCATION);
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(input, KEYSTORE_PWD.toCharArray());
@@ -96,12 +98,17 @@ public class SSLUtils {
 
     }
 
-
+    ////////////////////////////////////////////////
+    /// Comparing the CACERT with the ServerCert ///
+    ////////////////////////////////////////////////
     public static void checkServerCert(X509Certificate cert) throws Exception {
+
         //http://stackoverflow.com/questions/6629473/validate-x-509-certificate-agains-concrete-ca-java
         if (cert == null) {
             throw new IllegalArgumentException("Null or zero-length certificate chain");
         }
+
+        //Grab the CaCert
         X509Certificate caCert = getCACertificate();
 
         //Check if certificate send if your CA's

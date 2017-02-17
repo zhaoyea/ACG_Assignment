@@ -14,7 +14,9 @@ import java.security.spec.InvalidKeySpecException;
 public class HashUtils {
     public HashUtils() throws FileNotFoundException {
     }
-
+    /////////////////////////////////////////////
+    ///// Declare the hashPassword function /////
+    /////////////////////////////////////////////
     //https://www.owasp.org/index.php/Hashing_Java
     public static byte[] hashPassword(final char[] password, final byte[] salt, final int iterations, final int keyLength) {
         try {
@@ -44,7 +46,9 @@ public class HashUtils {
         return strbuf.toString();
     }
 
-    //Random salt
+    ////////////////////////////////////
+    ///// Generate the Random Salt /////
+    ////////////////////////////////////
     //https://docs.oracle.com/javase/7/docs/api/java/security/SecureRandom.html
     public static byte[] getSalt() {
         try {

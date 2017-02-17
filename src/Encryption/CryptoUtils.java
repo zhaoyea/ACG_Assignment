@@ -11,15 +11,20 @@ import java.util.Base64;
  **/
 public class CryptoUtils {
 
-    private static final String UNICODE_FORMAT = "UTF-8";
-
+    //////////////////////////////////
+    ///// Ecnryption of Messages /////
+    //////////////////////////////////
     public static String encrypt(String unencryptedString, SecretKey key, Cipher cipher) {
         byte[] cipherText = null;
         String encryptedString = null;
         try {
             cipher.init(Cipher.ENCRYPT_MODE, key);
             byte[] plainText = unencryptedString.getBytes("utf-8");
+
+            //encyrpt the plaintext
             cipherText = cipher.doFinal(plainText);
+
+            //Encode the cipherText into Base64
             encryptedString = new String(Base64.getEncoder().encode(cipherText));
 
         } catch (Exception e) {
@@ -27,6 +32,8 @@ public class CryptoUtils {
         }
         return encryptedString;
     }
+
+    private static final String UNICODE_FORMAT = "UTF-8";
 
 
     public static String decrypt(String encryptedString, SecretKey key, Cipher cipher) {

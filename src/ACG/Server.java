@@ -12,7 +12,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -260,11 +259,6 @@ public class Server {
                                     System.out.println("*************************************");
                                     System.out.println("Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME);
                                     System.out.println("*************************************");
-                                } else {
-                                    JOptionPane.showMessageDialog(null,
-                                            "Users: " + decryptedUsernameAsString + " created. Password stored in " + USERS_FILE_NAME,
-                                            "Success",
-                                            JOptionPane.INFORMATION_MESSAGE);
                                 }
                                 enter = "pass";
                                 sOutput.writeObject(enter);
