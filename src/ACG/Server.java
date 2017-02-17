@@ -43,7 +43,7 @@ public class Server {
     // the boolean that will be turned of to stop the server
     private boolean keepGoing;
 
-    private static final String USERS_FILE_NAME = "src/Users/users.txt";
+    private static final String USERS_FILE_NAME = "users.txt";
 
     /*
      *  server constructor that receive the port to listen to for connection as parameter

@@ -9,7 +9,7 @@ import java.io.LineNumberReader;
  */
 public class UserAuthentication {
 
-    private static final String USERS_FILE_NAME = "src/Users/users.txt";
+    private static final String USERS_FILE_NAME = "users.txt";
 
     //////////////////////////////////////////
     ///// Verfiy the user from users.txt /////
@@ -60,6 +60,7 @@ public class UserAuthentication {
         LineNumberReader reader = new LineNumberReader(new FileReader(USERS_FILE_NAME));
         String line;
         String errMsg;
+        int counter = 0;
 
         if (reader.readLine() == null) {
             if ((!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$"))) {
@@ -72,7 +73,6 @@ public class UserAuthentication {
         }
 
         try (BufferedReader br = new BufferedReader(new FileReader(USERS_FILE_NAME))) {
-
             while ((line = br.readLine()) != null) {
                 String dbUsername = line.split(":")[0];
                 System.out.println(dbUsername);
@@ -84,18 +84,28 @@ public class UserAuthentication {
                     return false;
                 } else {
                     if (dbUsername.equals(Username)) {
-                        return false;
-                    }
-
-                    if(!Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")){
-                        return false;
+                        counter = 1;
                     }
                 }
-
-
             }
         }
-        return false;
+        if (counter == 0) {
+            try (BufferedReader bur = new BufferedReader(new FileReader(USERS_FILE_NAME))) {
+                while ((line = bur.readLine()) != null) {
+                    System.out.println("ITGOESHERE");
+                    String dbUsername = line.split(":")[0];
+                    System.out.println(dbUsername);
+                    if (Password.matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")) {
+                        counter = 0;
+                    } else
+                        counter = 1;
+                }
+            }
+        }
+        if (counter==0) {
+            return true;
+        } else
+            return false;
     }
 }
 

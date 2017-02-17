@@ -64,7 +64,7 @@
         <properties>
           <editable value="true"/>
           <enabled value="true"/>
-          <text value="zhaoyea"/>
+          <text value=""/>
         </properties>
       </component>
       <component id="20e20" class="javax.swing.JLabel">
@@ -83,7 +83,7 @@
         </constraints>
         <properties>
           <enabled value="true"/>
-          <text value="S9837142g"/>
+          <text value=""/>
         </properties>
       </component>
       <grid id="27e95" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">

@@ -12,7 +12,7 @@ import java.security.cert.X509Certificate;
  * Created by tanzh on 30/01/2017.
  */
 public class SSLUtils {
-    private static final String KEYSTORE_LOCATION = "src/SSL Cert/mykeystore.jks";
+    private static final String KEYSTORE_LOCATION = "mykeystore.jks";
     private static final String SERVER_ALIAS = "server_signed";
     private static final String CA_ALIAS = "ca";
     private static final String KEYSTORE_PWD = "12345678";
